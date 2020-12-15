@@ -34,9 +34,9 @@ public class Quadtree<E> {
      */
     Data<E> middleData;
 
-    Data<E>[] values = new Data[maxPoints];
+    Data<E>[] values;
 
-    Quadtree<E>[] quadrants = new Quadtree[4];
+    Quadtree<E>[] quadrants;
 
     /**
      * @param dimension The dimension of the quadrant, x and y represents the width and height
@@ -47,6 +47,8 @@ public class Quadtree<E> {
         this.dimension = dimension;
         this.offset = offset;
         this.maxPoints = maxPoints;
+        values = new Data[this.maxPoints];
+        quadrants = new Quadtree[4];
     }
 
     public Quadtree(Point2D dimension, Point2D offset) {
