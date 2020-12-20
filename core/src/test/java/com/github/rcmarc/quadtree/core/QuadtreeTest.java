@@ -100,4 +100,22 @@ class QuadtreeTest {
         assertEquals(new Quadtree<Integer>(new Point2D(2.5,2.5), new Point2D(0,7.5)), tree.getQuadrant(point_3));
     }
 
+    @Test
+    public void testDelete(){
+        Quadtree<Integer> tree = new Quadtree<>(new Point2D(10,10));
+        Point2D point_1 = new Point2D(4,6);
+        Point2D point_2 = new Point2D(2,7);
+        Point2D point_3 = new Point2D(1, 8);
+        tree.insert(new Data<>(5,point_1));
+        tree.insert(new Data<>(5,point_2));
+        tree.insert(new Data<>(5,point_3));
+        tree.delete(point_1);
+        assertTrue(tree.quadrants[0].quadrants[2].isEmpty());
+        assertFalse(tree.isEmpty());
+        tree.delete(point_2);
+        assertTrue(tree.quadrants[0].quadrants[3].isEmpty());
+        assertFalse(tree.isEmpty());
+        tree.delete(point_3);
+        assertTrue(tree.isEmpty());
+    }
 }

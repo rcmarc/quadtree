@@ -2,6 +2,7 @@ package com.github.rcmarc.quadtree.core;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import static com.github.rcmarc.quadtree.core.Corner.*;
 
@@ -56,7 +57,7 @@ public class Quadtree<E> {
     }
 
     public Quadtree(Point2D dimension) {
-        this(dimension, new Point2D(0, 0),1);
+        this(dimension, new Point2D(0, 0), 1);
     }
 
     public void insert(Data<E> data) {
@@ -84,6 +85,44 @@ public class Quadtree<E> {
         }
     }
 
+    public void delete(Point2D point) {
+        if (isLeaf()) {
+            if (middleData != null) {
+                if (middleData.point.equals(point)) {
+                    middleData = null;
+                    return;
+                }
+            }
+
+            for (int i = 0; i < values.length; i++) {
+                if (values[i].point.equals(point)) {
+                    values[i] = null;
+                    dataCount--;
+                    return;
+                }
+            }
+            throw new PointNotExistsException(point);
+        }
+        deleteInQuadrant(point);
+
+        deleteIfEmpty();
+    }
+
+    private void deleteIfEmpty() {
+        if (Arrays.stream(quadrants).allMatch(Quadtree::isEmpty)) Arrays.fill(quadrants, null);
+    }
+
+    private void deleteInQuadrant(Point2D point) {
+        Corner corner = getCorner(point);
+        if (corner == MIDDLE) {
+            if (middleData == null) throw new PointNotExistsException(point);
+            middleData = null;
+            return;
+        }
+
+        quadrants[corner.pos].delete(point);
+    }
+
     private void insertInQuadrant(Data<E> data) {
         insertInQuadrant(data, false);
     }
@@ -99,11 +138,15 @@ public class Quadtree<E> {
     }
 
     public boolean isLeaf() {
-        return quadrants[0] == null;
+        return Arrays.stream(quadrants).allMatch(Objects::isNull);
     }
 
-    private boolean isFull() {
+    public boolean isFull() {
         return dataCount == maxPoints;
+    }
+
+    public boolean isEmpty() {
+        return dataCount == 0 && middleData == null && isLeaf();
     }
 
     Corner getCorner(Point2D point) {
@@ -131,7 +174,7 @@ public class Quadtree<E> {
         }
         try {
             return quadrants[getCorner(point).pos].getQuadrant(point);
-        }catch (OutsideQuadrantException ignored) {
+        } catch (OutsideQuadrantException ignored) {
             return null;
         }
     }
