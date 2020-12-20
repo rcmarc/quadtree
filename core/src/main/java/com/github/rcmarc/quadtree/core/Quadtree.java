@@ -180,7 +180,7 @@ public class Quadtree<E> {
     }
 
     private void reset() {
-        dataCount = middleData == null ? 0 : 1;
+        dataCount = 0;
         values = null;
     }
 
