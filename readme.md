@@ -3,14 +3,10 @@
 This is a java implementation of the Quadtree data structure, the main implementation is on the core folder
 
 ### Build
-if you have gradle installed on your machine run 
+You must have maven installed on your machine
 
-``` gradle build ```
-
-else run 
-
-```gradlew build```
+``` mvn clean package ```
 
 ### Run visual project
 
-```gradle run```
+``` mvn -pl visual clean javafx:run ```
