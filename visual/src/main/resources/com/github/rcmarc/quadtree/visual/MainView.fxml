@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.github.rcmarc.quadtree.visual.MainViewController"
+            prefHeight="400.0" prefWidth="600.0">
+
+    <Button layoutX="126" layoutY="90" text="Click Me" onAction="#handleButtonAction" fx:id="button"/>
+    <Label layoutX="126" layoutY="120" minHeight="16" minWidth="69" fx:id="label"/>
+</AnchorPane>
