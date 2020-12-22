@@ -76,7 +76,6 @@ public class JavaFXSwingApplication1 extends Application{
             Point2D p = new Point2D(x, y);
             ptos.push(p);
             qtree.insert(new Data(0, p));
-            printIsNull(qtree);
             drawQuadtree(canvas.getGraphicsContext2D());
         });
 
@@ -90,7 +89,6 @@ public class JavaFXSwingApplication1 extends Application{
             Point2D p = new Point2D(x, y);
             ptos.push(p);
             qtree.insert(new Data(0, p));
-            printIsNull(qtree);
             drawQuadtree(canvas.getGraphicsContext2D());
         });
         // Containers
@@ -109,14 +107,6 @@ public class JavaFXSwingApplication1 extends Application{
         Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
-    }
-
-    private void printIsNull(Quadtree qtree) {
-        Arrays.stream(qtree.getQuadrants()).map(this::getNull).forEach(System.out::println);
-    }
-
-    private String getNull(Quadtree tree) {
-        return tree != null ? "Non Null": "Null";
     }
 
     public static void main(String[] args) {
