@@ -11,6 +11,14 @@ public class Point2D {
         this.y = y;
     }
 
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
     public Point2D add(Point2D point){
         return new Point2D(x + point.x, y + point.y);
     }

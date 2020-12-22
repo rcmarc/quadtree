@@ -64,6 +64,18 @@ public class Quadtree<E> {
         insert(data, true);
     }
 
+    public Quadtree<E>[] getQuadrants() {
+        return quadrants;
+    }
+
+    public Point2D getOffset() {
+        return offset;
+    }
+
+    public Point2D getDimension() {
+        return dimension;
+    }
+
     public void insert(Data<E> data, boolean strict) {
         if (isLeaf()) {
             if (strict && contains(data.point)) throw new DuplicatedPointException(data.point);
@@ -186,10 +198,10 @@ public class Quadtree<E> {
 
     void subdivide() {
         Point2D sub_dimension = dimension.divide(2);
-        quadrants[0] = new Quadtree<>(sub_dimension, new Point2D(offset.x, offset.y + dimension.y / 2));
-        quadrants[1] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y + dimension.y / 2));
-        quadrants[2] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y));
-        quadrants[3] = new Quadtree<>(sub_dimension, offset);
+        quadrants[0] = new Quadtree<>(sub_dimension, new Point2D(offset.x, offset.y + dimension.y / 2),maxPoints);
+        quadrants[1] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y + dimension.y / 2),maxPoints);
+        quadrants[2] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y),maxPoints);
+        quadrants[3] = new Quadtree<>(sub_dimension, offset,maxPoints);
     }
 
     public boolean contains(Point2D point) {

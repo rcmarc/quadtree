@@ -76,6 +76,7 @@ public class JavaFXSwingApplication1 extends Application{
             Point2D p = new Point2D(x, y);
             ptos.push(p);
             qtree.insert(new Data(0, p));
+            printIsNull(qtree);
             drawQuadtree(canvas.getGraphicsContext2D());
         });
 
@@ -89,6 +90,7 @@ public class JavaFXSwingApplication1 extends Application{
             Point2D p = new Point2D(x, y);
             ptos.push(p);
             qtree.insert(new Data(0, p));
+            printIsNull(qtree);
             drawQuadtree(canvas.getGraphicsContext2D());
         });
         // Containers
@@ -109,29 +111,38 @@ public class JavaFXSwingApplication1 extends Application{
         stage.show();
     }
 
+    private void printIsNull(Quadtree qtree) {
+        Arrays.stream(qtree.getQuadrants()).map(this::getNull).forEach(System.out::println);
+    }
+
+    private String getNull(Quadtree tree) {
+        return tree != null ? "Non Null": "Null";
+    }
+
     public static void main(String[] args) {
         launch();
     }
 
     // draw the quadtree
     private void drawQuadtree(GraphicsContext g) {
-        g.clearRect(0, 0, w, h);
+//        g.clearRect(0, 0, w, h);
         
         // Build quadtree
         drawSubQuadtree(g, qtree);
         
         // Re-paint all points
-        ptos.stream().forEach((p) -> {
-            g.fillOval(p.getX(), p.getY(), 5, 5);
-        });
+//        ptos.stream().forEach((p) -> {
+//            g.fillOval(p.getX(), p.getY(), 5, 5);
+//        });
     }
     
     private void drawSubQuadtree(GraphicsContext g, Quadtree q) {
-        g.strokeLine(q.getOffset().getX()+q.getDimension().getX()/2, q.getOffset().getY(), 
-                    q.getOffset().getX()+q.getDimension().getX()/2, q.getOffset().getY()+q.getDimension().getY());
-        g.strokeLine(q.getOffset().getX(), q.getOffset().getY()+q.getDimension().getY()/2, 
-                     q.getOffset().getX()+q.getDimension().getX(), q.getOffset().getY()+q.getDimension().getY()/2);
-        
+        if(!q.isLeaf()) {
+            g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY(),
+                    q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY() + q.getDimension().getY());
+            g.strokeLine(q.getOffset().getX(), q.getOffset().getY() + q.getDimension().getY() / 2,
+                    q.getOffset().getX() + q.getDimension().getX(), q.getOffset().getY() + q.getDimension().getY() / 2);
+        }
         if(q.getQuadrants()[0] != null) drawSubQuadtree(g, q.getQuadrants()[0]);
         if(q.getQuadrants()[1] != null) drawSubQuadtree(g, q.getQuadrants()[1]);
         if(q.getQuadrants()[2] != null) drawSubQuadtree(g, q.getQuadrants()[2]);
