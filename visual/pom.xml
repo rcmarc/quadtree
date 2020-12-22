@@ -20,7 +20,7 @@
                     <artifactId>javafx-maven-plugin</artifactId>
                     <version>0.0.5</version>
                     <configuration>
-                        <mainClass>quadtree.visual/com.github.rcmarc.quadtree.visual.Main</mainClass>
+                        <mainClass>quadtree.visual/com.github.rcmarc.quadtree.visual.JavaFXSwingApplication1</mainClass>
                     </configuration>
                 </plugin>
             </plugins>
@@ -37,6 +37,12 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>15.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.rcmarc.quadtree</groupId>
+            <artifactId>core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
