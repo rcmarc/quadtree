@@ -2,223 +2,138 @@ package com.github.rcmarc.quadtree.core;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.stream.IntStream;
 
-import static com.github.rcmarc.quadtree.core.Corner.*;
-
-public class Quadtree<E> {
+public interface Quadtree<E> {
+    /**
+     * This method should return the max number of {@link Data} instances allowed
+     * to be stored on the Quadtree, this number is equal to the max number of {@link Data}
+     * allowed plus the {@code Data} in middle point of this Quadtree
+     * @return The max number of {@link Data} instances allowed
+     */
+    int getMaxDataAllowed();
 
     /**
-     * max amount of pints allowed on each quadrant
+     * This method should return the number of elements on this Quadtree, this number is
+     * equal to the number of elements plus the {@link Data} in middle point if {@code getMiddleData != null}
+     * @return The amount of {@link Data} on this Quadtree
      */
-    int maxPoints;
+    int getDataCount();
 
     /**
-     * The current number of data points in the quadrant, if this quadrant is a leaf it will always be zero unless
-     * it has a middle data point
+     * This method should return the {@link Corner} that a {@link Point2D} belongs to.
+     * @param point the point.
+     * @return the {@link Corner} that the {@link Point2D} belongs to.
+     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
+     * @throws PointNotExistsException if the {@link Point2D} doesn't exist.
      */
-    int dataCount = 0;
+    Corner getCorner(Point2D point);
 
     /**
-     * This is the dimension of the quadrant, x and y represents the width and height
+     * This method should return the dimension of this Quadtree, which is a {@link Point2D}
+     * where the x field represents the width and the y field represents the height
+     * @return The dimension of this Quadtree
      */
-    final Point2D dimension;
+    Point2D getDimension();
 
     /**
-     * The offset of the quadrant, the beginning of the coordinate axis
+     * This method should return the offset of this Quadtree, which is the starting point of this
+     * Quadtree on the coordinate axis
+     * @return The offset of this Quadtree
      */
-    final Point2D offset;
+    Point2D getOffset();
 
     /**
-     * This is for the case that a point is in the middle, therefore there is no way to determine to which quadrant
-     * should be
+     * This method should return all the quadrants on this Quadtree, if this Quadtree is a leaf
+     * this method will return an array with all his elements null
+      * @return All the quadrants off the Quadtree
      */
-    Data<E> middleData;
-
-    Data<E>[] values;
-
-    Quadtree<E>[] quadrants;
+    Quadtree<E>[] getQuadrants();
 
     /**
-     * @param dimension The dimension of the quadrant, x and y represents the width and height
-     * @param offset    The offset of the quadrant, the beginning of the coordinate axis
-     * @param maxPoints The max number of data points allowed in the quadtree
+     * This method will insert the {@link Data} on this Quadtree and it will make the subdivision
+     * once {@code getDataCount() == getMaxDataAllowed()}. <br/>
+     * @param data The data to insert.
+     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
+     * @throws DuplicatedPointException if the {@link Point2D} already is in this Quadtree.
      */
-    public Quadtree(Point2D dimension, Point2D offset, int maxPoints) {
-        this.dimension = dimension;
-        this.offset = offset;
-        this.maxPoints = maxPoints;
-        values = new Data[this.maxPoints];
-        quadrants = new Quadtree[4];
+    void insert(Data<E> data);
+
+    /**
+     * This method will delete the {@link Data} located on the {@link Point2D} parameter
+     * @param point The point to delete.
+     * @throws PointNotExistsException if the {@link Point2D} doesn't exist.
+     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
+     */
+    void delete(Point2D point);
+
+    /**
+     * This method will return an array containing all the values of this Quadtree including the {@code getMiddleData()}
+     * @return the values of this Quadtree
+     */
+    Data<E>[] getValues();
+
+    /**
+     * This method will return the value in the middle off this Quadtree, this is necessary
+     * cause there is no way of distribute this value to the quadrants resulting of the division of
+     * the Quadtree.
+     * @return The middle data.
+     */
+    Data<E> getMiddleData();
+
+    /**
+     * This method will return the quadrant that the {@link Point2D} parameter belongs to.
+     * @param point the point to look for.
+     * @return the Quadtree that the {@link Point2D} parameter belongs to
+     * @throws PointNotExistsException if the {@link Point2D} doesn't exist on this Quadtree.
+     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
+     */
+    Quadtree<E> getQuadrant(Point2D point);
+
+    /**
+     * This method will check if the {@link Point2D} parameter exists on this Quadtree and recursively on the
+     * quadrants resulting of the division made in the insert method.
+     * @param point the {@link Point2D} to find.
+     * @return {@code true} if the {@link Point2D} exists, false otherwise.
+     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
+     */
+    boolean contains(Point2D point);
+
+    /**
+     * The quadtree is leaf if all his sub quadrants are null, but this method only should check for null of one
+     * of his sub quadrants cause for definition a quadtree has four sub quadrants or zero.
+     * @return {@code true} if this Quadtree is leaf, {@code false} otherwise.
+     */
+    default boolean isLeaf() {
+        return Arrays.stream(getQuadrants()).allMatch(Objects::isNull);
     }
 
-    public Quadtree(Point2D dimension, Point2D offset) {
-        this(dimension, offset, 1);
+    /**
+     * The Quadtree is empty if {@code isLeaf() == true} and has no data stored in it.
+     * @return {@code true} if is empty, false otherwise.
+     */
+    default boolean isEmpty(){
+        return getDataCount() == 0 && getMiddleData() == null && isLeaf();
     }
 
-    public Quadtree(Point2D dimension) {
-        this(dimension, new Point2D(0, 0), 1);
-    }
-
-    public void insert(Data<E> data) {
-        insert(data, true);
-    }
-
-    public Quadtree<E>[] getQuadrants() {
-        return quadrants;
-    }
-
-    public Point2D getOffset() {
-        return offset;
-    }
-
-    public Point2D getDimension() {
-        return dimension;
-    }
-
-    public void insert(Data<E> data, boolean strict) {
-        if (isLeaf()) {
-            if (strict && contains(data.point)) throw new DuplicatedPointException(data.point);
-            if (isFull()) {
-                // subdivide
-                subdivide();
-                // reinsert
-                Arrays.stream(values).forEach(this::insertInQuadrant);
-                // reset data
-                reset();
-                // insert the data
-                insertInQuadrant(data);
-            } else {
-                values[dataCount++] = data;
-            }
-
-        } else {
-            insertInQuadrant(data, true);
-        }
-    }
-
-    public void delete(Point2D point) {
-        if (isLeaf()) {
-            if (middleData != null) {
-                if (middleData.point.equals(point)) {
-                    middleData = null;
-                    return;
+    /**
+     * This method will check if the point is inside the boundaries of the {@link Quadtree} parameter
+     * and therefore can be inserted.
+     * @param point the point to check.
+     * @param tree the tree to check in.
+     * @throws OutsideQuadrantException if the point is outside of the {@link Quadtree} parameter.
+     */
+    static void checkBoundaries(Point2D point, Quadtree<?> tree){
+        double min_x = tree.getOffset().getX();
+        if (point.getX() >= min_x) {
+            double max_x = tree.getOffset().getX() + tree.getDimension().getX();
+            if (point.getX() <= max_x) {
+                double min_y = tree.getOffset().getY();
+                if (point.getY() >= min_y) {
+                    double max_y = tree.getOffset().getY() + tree.getDimension().getY();
+                    if (point.getY() <= max_y) return;
                 }
             }
-
-            for (int i = 0; i < values.length; i++) {
-                if (values[i].point.equals(point)) {
-                    values[i] = null;
-                    dataCount--;
-                    return;
-                }
-            }
-            throw new PointNotExistsException(point);
         }
-        deleteInQuadrant(point);
-
-        deleteIfEmpty();
+        throw new OutsideQuadrantException(point, tree.getOffset(), tree.getDimension());
     }
-
-    private void deleteIfEmpty() {
-        if (Arrays.stream(quadrants).allMatch(Quadtree::isEmpty)) Arrays.fill(quadrants, null);
-    }
-
-    private void deleteInQuadrant(Point2D point) {
-        Corner corner = getCorner(point);
-        if (corner == MIDDLE) {
-            if (middleData == null) throw new PointNotExistsException(point);
-            middleData = null;
-            return;
-        }
-
-        quadrants[corner.pos].delete(point);
-    }
-
-    private void insertInQuadrant(Data<E> data) {
-        insertInQuadrant(data, false);
-    }
-
-    private void insertInQuadrant(Data<E> data, boolean strict) {
-        Corner corner = getCorner(data.point);
-        if (corner == MIDDLE) {
-            if (middleData != null) throw new DuplicatedPointException(data.point);
-            middleData = data;
-            return;
-        }
-        quadrants[corner.pos].insert(data, strict);
-    }
-
-    public boolean isLeaf() {
-        return Arrays.stream(quadrants).allMatch(Objects::isNull);
-    }
-
-    public boolean isFull() {
-        return dataCount == maxPoints;
-    }
-
-    public boolean isEmpty() {
-        return dataCount == 0 && middleData == null && isLeaf();
-    }
-
-    Corner getCorner(Point2D point) {
-        double max_x = offset.x + dimension.x, max_y = offset.y + dimension.y;
-
-        if (point.x > max_x || point.y > max_y || point.x < offset.x || point.y < offset.y)
-            throw new OutsideQuadrantException(point, offset, dimension);
-
-        double middle_x = offset.x + dimension.x / 2, middle_y = offset.y + dimension.y / 2;
-        if (point.x == middle_x) {
-            if (point.y == middle_y) return MIDDLE;
-            return point.y > middle_y ? TOP_LEFT : BOTTOM_RIGHT;
-        } else if (point.y == middle_y) {
-            return point.x > middle_x ? TOP_RIGHT : BOTTOM_LEFT;
-        } else if (point.x > middle_x) {
-            return point.y > middle_y ? TOP_RIGHT : BOTTOM_RIGHT;
-        }
-        return point.y > middle_y ? TOP_LEFT : BOTTOM_LEFT;
-    }
-
-    public Quadtree<E> getQuadrant(Point2D point) {
-        if (isLeaf()) {
-            if (contains(point)) return this;
-            return null;
-        }
-        try {
-            return quadrants[getCorner(point).pos].getQuadrant(point);
-        } catch (OutsideQuadrantException ignored) {
-            return null;
-        }
-    }
-
-    private void reset() {
-        dataCount = 0;
-        values = null;
-    }
-
-    void subdivide() {
-        Point2D sub_dimension = dimension.divide(2);
-        quadrants[0] = new Quadtree<>(sub_dimension, new Point2D(offset.x, offset.y + dimension.y / 2),maxPoints);
-        quadrants[1] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y + dimension.y / 2),maxPoints);
-        quadrants[2] = new Quadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y),maxPoints);
-        quadrants[3] = new Quadtree<>(sub_dimension, offset,maxPoints);
-    }
-
-    public boolean contains(Point2D point) {
-        return Arrays.stream(values).anyMatch(data -> Objects.nonNull(data) && data.point.equals(point));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Quadtree<?> quadtree = (Quadtree<?>) o;
-        return dimension.equals(quadtree.dimension) && offset.equals(quadtree.offset);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(dimension, offset);
-    }
-
 }
