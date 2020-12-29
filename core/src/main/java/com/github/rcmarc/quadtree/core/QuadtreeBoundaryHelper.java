@@ -29,7 +29,8 @@ public class QuadtreeBoundaryHelper {
      * of the {@code point.getX()} value.
      */
     public boolean isPointBetweenHorizontalEdges(Quadtree tree, Point2D point) {
-        return getMinX(tree) <= point.getX() && getMaxX(tree) >= point.getX();
+        return (getMinX(tree) <= (point.getX() + point.getRadius())) &&
+                (getMaxX(tree) >= (point.getX() - point.getRadius()));
     }
 
     /**
@@ -40,7 +41,8 @@ public class QuadtreeBoundaryHelper {
      * of the {@code point.getX()} value.
      */
     public boolean isPointBetweenVerticalEdges(Quadtree tree, Point2D point) {
-        return getMinY(tree) <= point.getY() && getMaxY(tree) >= point.getY();
+        return (getMinY(tree) <= (point.getY() + point.getRadius())) &&
+                (getMaxY(tree) >= (point.getY() - point.getRadius()));
     }
 
     /**

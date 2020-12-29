@@ -76,6 +76,9 @@ public class QuadtreeBoundaryHelperTest {
         point = new Point2D(-5, 6, 6);
         assertFalse(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
         assertTrue(helper.isPointRadiusOverlayingQuadtree(tree, point));
+
+        point = new Point2D(16, 16, 1);
+        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
     }
 
 }
