@@ -1,72 +1,195 @@
 package com.github.rcmarc.quadtree.core;
 
+
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
-import static com.github.rcmarc.quadtree.core.Corner.*;
+public abstract class AbstractBaseQuadtree implements Quadtree {
 
-public abstract class AbstractBaseQuadtree<E> implements Quadtree<E> {
+    private final Point2D dimension;
+    private final Point2D offset;
+    private final int maxDataAllowed;
+    private final int maxDepth;
+    private final PointContainerChecker pointChecker;
+    private final QuadtreeDivider divider;
+    private final QuadrantGetter quadrantGetter;
+    private final Quadtree[] quadrants;
+    private final boolean allowLeaf;
 
-    protected void subdivide(){
-        Point2D dimension = getDimension();
-        Point2D sub_dimension = dimension.divide(2), offset = getOffset();
-        int maxPoints = getMaxDataAllowed();
-        Quadtree<E>[] quadrants = getQuadrants();
-        quadrants[0] = new NoDepthLimitQuadtree<>(sub_dimension, new Point2D(offset.x, offset.y + dimension.y / 2), maxPoints);
-        quadrants[1] = new NoDepthLimitQuadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y + dimension.y / 2), maxPoints);
-        quadrants[2] = new NoDepthLimitQuadtree<>(sub_dimension, new Point2D(offset.x + dimension.x / 2, offset.y), maxPoints);
-        quadrants[3] = new NoDepthLimitQuadtree<>(sub_dimension, offset, maxPoints);
+    private int dataCount = 0;
+    private int depth;
+
+    public AbstractBaseQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed, int maxDepth, boolean allowLeaf) {
+        this.dimension = dimension;
+        this.offset = offset;
+        this.maxDataAllowed = maxDataAllowed;
+        this.maxDepth = maxDepth;
+        quadrants = new Quadtree[4];
+        depth = 0;
+        pointChecker = getPointChecker();
+        divider = new QuadtreeDivider(getQuadtreeProvider());
+        quadrantGetter = getQuadrantGetter();
+        this.allowLeaf = allowLeaf;
     }
 
     @Override
-    public Corner getCorner(Point2D point) {
-        Point2D offset = getOffset(), dimension = getDimension();
-        double max_x = offset.x + dimension.x, max_y = offset.y + dimension.y;
-
-        if (point.x > max_x || point.y > max_y || point.x < offset.x || point.y < offset.y)
-            throw new OutsideQuadrantException(point, offset, dimension);
-
-        double middle_x = offset.x + dimension.x / 2, middle_y = offset.y + dimension.y / 2;
-        if (point.x == middle_x) {
-            if (point.y == middle_y) return MIDDLE;
-            return point.y > middle_y ? TOP_LEFT : BOTTOM_RIGHT;
-        } else if (point.y == middle_y) {
-            return point.x > middle_x ? TOP_RIGHT : BOTTOM_LEFT;
-        } else if (point.x > middle_x) {
-            return point.y > middle_y ? TOP_RIGHT : BOTTOM_RIGHT;
-        }
-        return point.y > middle_y ? TOP_LEFT : BOTTOM_LEFT;
+    public int getMaxDataAllowed() {
+        return maxDataAllowed;
     }
 
     @Override
-    public boolean contains(Point2D point) {
-        try {
-            Quadtree.checkBoundaries(point, this);
+    public int getDataCount() {
+        return dataCount;
+    }
 
-            if (isEmpty()) return false;
+    @Override
+    public int getMaxDepth() {
+        return maxDepth;
+    }
 
-            if (isLeaf()) {
-                return Arrays.stream(getValues()).anyMatch(data -> data.point.equals(point));
+    @Override
+    public int getDepth() {
+        return depth;
+    }
+
+    @Override
+    public Point2D getDimension() {
+        return dimension;
+    }
+
+    @Override
+    public Point2D getOffset() {
+        return offset;
+    }
+
+    @Override
+    public Quadtree[] getQuadrants() {
+        return quadrants;
+    }
+
+    @Override
+    public boolean allowLeaf() {
+        return allowLeaf;
+    }
+
+    @Override
+    public boolean insert(Data<?> data) {
+        return insert(data, true);
+    }
+
+    private boolean insert(Data<?> data, boolean strict) {
+        if (isLeaf()) {
+            if (strict && pointChecker.contains(this, data.getPoint()))
+                return false;
+            if (getDataCount() == getMaxDataAllowed()) {
+
+                if (getDepth() == getMaxDepth()) {
+                    return false;
+                }
+
+                divider.subdivide(this);
+
+                onSubdivide();
+
+                getQuadrantsAndInsert(data, true);
+            } else {
+                setData(data, dataCount++);
             }
-
-            return getQuadrants()[getCorner(point).pos].contains(point);
-        } catch (OutsideQuadrantException ignored) {
-            return false;
+        } else {
+            getQuadrantsAndInsert(data, true);
         }
+        return true;
+    }
 
+    protected void onSubdivide() {
+        depth++;
+        if (depth == maxDepth - 1) {
+            if (allowLeaf)
+                divider.setProvider(AtomicLeafQuadtree.provider());
+            else throw new UnexpectedErrorException("Max data reached");
+        }
+        reinsertAll();
+        clearData();
+    }
+
+    private void reinsertAll() {
+        Arrays.stream(getAllData())
+                .filter(Objects::nonNull)
+                .forEach(this::getQuadrantsAndInsert);
+    }
+
+    private void getQuadrantsAndInsert(Data<?> data) {
+        getQuadrantsAndInsert(data, false);
+    }
+
+    private void getQuadrantsAndInsert(Data<?> data, boolean strict) {
+        quadrantGetter.getQuadrants(this, data.getPoint())
+                .stream()
+                .map(q -> ((AbstractBaseQuadtree) q))
+                .forEach(q -> q.insert(data, strict));
+    }
+
+    @Override
+    public boolean delete(Point2D point) {
+        if (isLeaf()) {
+            try {
+                int index = IntStream.range(0, dataCount)
+                        .filter(i -> getData(i).getPoint().equals(point))
+                        .findFirst().orElseThrow();
+
+                setData(null, index);
+                dataCount--;
+            } catch (NoSuchElementException ignored) {
+                return false;
+            }
+            return true;
+        }
+        boolean b = getQuadrantsAndDelete(point);
+        if (b) deleteIfEmpty();
+        return b;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AbstractBaseQuadtree<?> quadtree = (AbstractBaseQuadtree<?>) o;
-        return getDimension().equals(quadtree.getDimension()) && getOffset().equals(quadtree.getOffset());
+        AbstractBaseQuadtree that = (AbstractBaseQuadtree) o;
+        return dimension.equals(that.dimension) && offset.equals(that.offset);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getDimension(), getOffset());
+        return Objects.hash(dimension, offset);
     }
+
+    private void deleteIfEmpty() {
+        if (Arrays.stream(quadrants).allMatch(Quadtree::isEmpty))
+            Arrays.fill(quadrants, null);
+    }
+
+    private boolean getQuadrantsAndDelete(Point2D point) {
+        return quadrantGetter.getQuadrants(this, point)
+                .stream()
+                .anyMatch(q -> q.delete(point));
+    }
+
+    private void clearData() {
+        dataCount = 0;
+        clearCollection();
+    }
+
+    protected void setQuadtreeProvider(QuadtreeProvider provider) {
+        divider.setProvider(provider);
+    }
+
+    protected abstract PointContainerChecker getPointChecker();
+
+    protected abstract QuadrantGetter getQuadrantGetter();
+
+    protected abstract QuadtreeProvider getQuadtreeProvider();
+
+    protected abstract void clearCollection();
 
 }

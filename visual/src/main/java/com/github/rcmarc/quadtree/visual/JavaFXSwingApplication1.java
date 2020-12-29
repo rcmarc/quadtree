@@ -26,7 +26,7 @@ import javafx.scene.input.MouseEvent;
 
 // Arregla esto que a mi no me dejo importarlo del proyecto original
 // Esto lo tengo yo para probar que funciona bien.
-import com.github.rcmarc.quadtree.core.NoDepthLimitQuadtree;
+import com.github.rcmarc.quadtree.core.PointQuadtree;
 import com.github.rcmarc.quadtree.core.Data;
 import com.github.rcmarc.quadtree.core.Point2D;
 
@@ -37,7 +37,7 @@ public class JavaFXSwingApplication1 extends Application{
     // Point2D of us (this is for test)
     private LinkedList<Point2D> ptos;
     // import quadtree
-    private NoDepthLimitQuadtree qtree;
+    private Quadtree qtree;
     
     @Override
     public void start(Stage stage) throws IOException {        
@@ -45,7 +45,7 @@ public class JavaFXSwingApplication1 extends Application{
         // Paint plane
         canvas = new Canvas(w, h);
         ptos = new LinkedList<>();
-        qtree = new NoDepthLimitQuadtree(new Point2D(w, h), new Point2D(0, 0), 4);
+        qtree = new PointQuadtree(new Point2D(w, h), new Point2D(0, 0), 4);
         
         Separator sep = new Separator(Orientation.VERTICAL);
         // Input point
@@ -73,7 +73,7 @@ public class JavaFXSwingApplication1 extends Application{
             
             Point2D p = new Point2D(x, y);
             ptos.push(p);
-            qtree.insert(new Data(0, p));
+            qtree.insert(new Data<>(0, p));
             drawQuadtree(canvas.getGraphicsContext2D());
         });
 
@@ -124,7 +124,7 @@ public class JavaFXSwingApplication1 extends Application{
 //        });
     }
     
-    private void drawSubQuadtree(GraphicsContext g, Quadtree<?> q) {
+    private void drawSubQuadtree(GraphicsContext g, Quadtree q) {
         if(!q.isLeaf()) {
             g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY(),
                     q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY() + q.getDimension().getY());
