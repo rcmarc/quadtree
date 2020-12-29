@@ -1,6 +1,6 @@
 package com.github.rcmarc.quadtree.core;
 
-public class QuadtreeDivider {
+class QuadtreeDivider {
 
     private QuadtreeProvider provider;
 
