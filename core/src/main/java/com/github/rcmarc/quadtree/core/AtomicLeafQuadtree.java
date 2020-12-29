@@ -6,8 +6,8 @@ public class AtomicLeafQuadtree extends AbstractBaseQuadtree {
 
     private final LinkedList<Data<?>> data = new LinkedList<>();
 
-    public AtomicLeafQuadtree(Point2D dimension, Point2D offset) {
-        super(dimension, offset, Integer.MAX_VALUE, 0, false);
+    public AtomicLeafQuadtree(Point2D dimension, Point2D offset, int depth) {
+        super(dimension, offset, Integer.MAX_VALUE, depth,0, false);
     }
 
     @Override
@@ -22,7 +22,7 @@ public class AtomicLeafQuadtree extends AbstractBaseQuadtree {
 
     @Override
     public QuadtreeProvider getQuadtreeProvider() {
-        return (a,b,c,d,e) -> new AtomicLeafQuadtree(a,b);
+        return AtomicLeafQuadtree.provider();
     }
 
     @Override
@@ -50,6 +50,6 @@ public class AtomicLeafQuadtree extends AbstractBaseQuadtree {
     }
 
     static QuadtreeProvider provider() {
-        return (a,b,c,d,e) -> new AtomicLeafQuadtree(a,b);
+        return (a,b,c,d,e,f) -> new AtomicLeafQuadtree(a,b,d);
     }
 }

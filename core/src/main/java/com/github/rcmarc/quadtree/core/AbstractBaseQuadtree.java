@@ -22,12 +22,16 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
     private int depth;
 
     public AbstractBaseQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed, int maxDepth, boolean allowLeaf) {
+        this(dimension,offset,maxDataAllowed, 0, maxDepth, allowLeaf);
+    }
+
+    AbstractBaseQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed,int depth, int maxDepth, boolean allowLeaf) {
         this.dimension = dimension;
         this.offset = offset;
         this.maxDataAllowed = maxDataAllowed;
         this.maxDepth = maxDepth;
         quadrants = new Quadtree[4];
-        depth = 0;
+        this.depth = depth;
         pointChecker = getPointChecker();
         divider = new QuadtreeDivider(getQuadtreeProvider());
         quadrantGetter = getQuadrantGetter();
@@ -79,6 +83,16 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
         return insert(data, true);
     }
 
+    public boolean insertAll(Data<?>... collection){
+        try {
+            if(!Arrays.stream(collection).allMatch(this::insert)) throw new Exception();
+            return true;
+        } catch (Exception ignored) {
+            Arrays.stream(collection).map(Data::getPoint).forEach(this::delete);
+        }
+        return false;
+    }
+
     private boolean insert(Data<?> data, boolean strict) {
         if (isLeaf()) {
             if (strict && pointChecker.contains(this, data.getPoint()))
@@ -105,11 +119,6 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
 
     protected void onSubdivide() {
         depth++;
-        if (depth == maxDepth - 1) {
-            if (allowLeaf)
-                divider.setProvider(AtomicLeafQuadtree.provider());
-            else throw new UnexpectedErrorException("Max data reached");
-        }
         reinsertAll();
         clearData();
     }
