@@ -25,15 +25,6 @@ public interface Quadtree {
 
     int getDepth();
 
-    /**
-     * This method should return the {@link Corner} that a {@link Point2D} belongs to.
-     *
-     * @param point the point.
-     * @return the {@link Corner} that the {@link Point2D} belongs to.
-     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
-     * @throws PointNotExistsException  if the {@link Point2D} doesn't exist.
-     */
-//    Corner getCorner(Point2D point);
 
     /**
      * This method should return the dimension of this Quadtree, which is a {@link Point2D}
@@ -64,8 +55,6 @@ public interface Quadtree {
      * once {@code getDataCount() == getMaxDataAllowed()}. <br/>
      *
      * @param data The data to insert.
-     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
-     * @throws DuplicatedPointException if the {@link Point2D} already is in this Quadtree.
      */
     boolean insert(Data<?> data);
 
@@ -73,8 +62,6 @@ public interface Quadtree {
      * This method will delete the {@link Data} located on the {@link Point2D} parameter
      *
      * @param point The point to delete.
-     * @throws PointNotExistsException  if the {@link Point2D} doesn't exist.
-     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
      */
     boolean delete(Point2D point);
 

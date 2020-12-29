@@ -8,7 +8,6 @@ public interface PointContainerChecker {
      *
      * @param point the {@link Point2D} to find.
      * @return {@code true} if the {@link Point2D} exists, false otherwise.
-     * @throws OutsideQuadrantException if the {@link Point2D} is outside of the boundaries of this Quadtree.
      */
     boolean contains(Quadtree tree, Point2D point);
 }
