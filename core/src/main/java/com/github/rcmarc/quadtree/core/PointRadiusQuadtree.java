@@ -7,6 +7,17 @@ public class PointRadiusQuadtree extends AbstractBaseQuadtree {
 
     private final Data<?>[] data;
 
+    public PointRadiusQuadtree(Point2D dimension) {
+        this(dimension, new Point2D(0,0));
+    }
+
+    public PointRadiusQuadtree(Point2D dimension, Point2D offset) {
+        this(dimension, offset, 1);
+    }
+    public PointRadiusQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed) {
+        this(dimension, offset, maxDataAllowed, Integer.MAX_VALUE, false);
+    }
+
     public PointRadiusQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed, int maxDepth, boolean allowLeaf) {
         super(dimension, offset, maxDataAllowed, maxDepth, allowLeaf);
         data = new Data[maxDataAllowed];
