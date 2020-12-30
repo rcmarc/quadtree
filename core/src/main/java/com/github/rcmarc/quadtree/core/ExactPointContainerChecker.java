@@ -5,10 +5,10 @@ import java.util.Objects;
 
 public class ExactPointContainerChecker implements PointContainerChecker {
 
-    private final ExactQuadrantGetter getter;
+    private final InclusiveQuadrantGetter getter;
 
     public ExactPointContainerChecker() {
-        this.getter = new ExactQuadrantGetter();
+        this.getter = new InclusiveQuadrantGetter();
     }
 
 

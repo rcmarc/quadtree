@@ -17,7 +17,10 @@ public class AtomicLeafQuadtree extends AbstractBaseQuadtree {
 
     @Override
     public QuadrantGetter getQuadrantGetter() {
-        return new ExactQuadrantGetter();
+        throw new UnsupportedOperationException(
+                String.format("%s is not allowed to be subdivided"
+                ,this.getClass().getSimpleName())
+        );
     }
 
     @Override
