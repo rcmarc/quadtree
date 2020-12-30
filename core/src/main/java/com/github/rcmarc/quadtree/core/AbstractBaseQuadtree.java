@@ -201,4 +201,8 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
 
     protected abstract void clearCollection();
 
+    protected abstract void setData(Data<?> data, int index);
+
+    protected abstract Data<?> getData(int index);
+
 }

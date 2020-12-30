@@ -1,8 +1,5 @@
 package com.github.rcmarc.quadtree.core;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 public interface Quadtree {
     /**
      * This method should return the max number of {@link Data} instances allowed
@@ -21,8 +18,16 @@ public interface Quadtree {
      */
     int getDataCount();
 
+    /**
+     *
+     * @return the max depth allowed by this {@link Quadtree}
+     */
     int getMaxDepth();
 
+    /**
+     *
+     * @return the current depth of this {@link Quadtree}
+     */
     int getDepth();
 
 
@@ -81,12 +86,6 @@ public interface Quadtree {
         return getQuadrants()[0] == null;
     }
 
-    void setData(Data<?> data, int index);
-
-    Data<?> getData(int index);
-
-    boolean allowLeaf();
-
     /**
      * The Quadtree is empty if {@code isLeaf() == true} and has no data stored in it.
      *
@@ -96,11 +95,9 @@ public interface Quadtree {
         return getDataCount() == 0  && isLeaf();
     }
 
-    static boolean contains(Point2D point, Quadtree tree) {
-        return Arrays.stream(tree.getAllData())
-                .filter(Objects::nonNull)
-                .map(Data::getPoint)
-                .anyMatch(p -> p.equals(point));
-    }
-
+    /**
+     *
+     * @return {@code true} if this {@link Quadtree} allows to be subdivided in four {@link AtomicLeafQuadtree}
+     */
+    boolean allowLeaf();
 }
