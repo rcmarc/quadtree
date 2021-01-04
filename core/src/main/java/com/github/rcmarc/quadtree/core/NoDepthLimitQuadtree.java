@@ -206,4 +206,51 @@ public class NoDepthLimitQuadtree<E> extends AbstractBaseQuadtree<E> {
         return Arrays.stream(tree.getValues()).anyMatch(data -> Objects.nonNull(data) && data.point.equals(point));
     }
 
+    public int getMaxPoints() {
+        return maxPoints;
+    }
+
+    public void setMaxPoints(int maxPoints) {
+        this.maxPoints = maxPoints;
+    }
+
+    public int getDataCount() {
+        return dataCount;
+    }
+
+    public void setDataCount(int dataCount) {
+        this.dataCount = dataCount;
+    }
+
+    public Data<E> getMiddleData() {
+        return middleData;
+    }
+
+    public void setMiddleData(Data<E> middleData) {
+        this.middleData = middleData;
+    }
+
+    public Data<E>[] getValues() {
+        return values;
+    }
+
+    public void setValues(Data<E>[] values) {
+        this.values = values;
+    }
+
+    public Quadtree<E>[] getQuadrants() {
+        return quadrants;
+    }
+
+    public void setQuadrants(Quadtree<E>[] quadrants) {
+        this.quadrants = quadrants;
+    }
+
+    public Point2D getDimension() {
+        return dimension;
+    }
+
+    public Point2D getOffset() {
+        return offset;
+    }
 }

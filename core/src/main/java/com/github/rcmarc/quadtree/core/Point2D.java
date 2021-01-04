@@ -2,21 +2,13 @@ package com.github.rcmarc.quadtree.core;
 
 import java.util.Objects;
 
-public class Point2D {
+public class Point2D implements Comparable<Point2D>{
 
     final double x,y;
 
     public Point2D(double x, double y) {
         this.x = x;
         this.y = y;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
     }
 
     public Point2D add(Point2D point){
@@ -44,4 +36,18 @@ public class Point2D {
     public int hashCode() {
         return Objects.hash(x, y);
     }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    @Override
+    public int compareTo(Point2D o) {
+        return o.x == x && o.y == y ? 0 : 1;
+    }
+    
 }
