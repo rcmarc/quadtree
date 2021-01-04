@@ -32,7 +32,9 @@ import javafx.scene.transform.NonInvertibleTransformException;
 
 // Arregla esto que a mi no me dejo importarlo del proyecto original
 // Esto lo tengo yo para probar que funciona bien.
-
+import com.github.rcmarc.quadtree.core.PointQuadtree;
+import com.github.rcmarc.quadtree.core.Data;
+import com.github.rcmarc.quadtree.core.Point2D;
 
 public class JavaFXSwingApplication1 extends Application{
 
@@ -42,9 +44,9 @@ public class JavaFXSwingApplication1 extends Application{
     // Point2D of us (this is for test)
     final private LinkedList<Point2D> ptos;
     // import quadtree
-    final private Quadtree qtree;
-    // Point selected
-    Point2D select;
+    private Quadtree qtree;
+
+    private Point2D select;
     
     public JavaFXSwingApplication1() {
         super();
@@ -52,7 +54,7 @@ public class JavaFXSwingApplication1 extends Application{
         // Paint plane
         canvas = new Canvas(w, h);
         ptos = new LinkedList<>();
-        qtree = new NoDepthLimitQuadtree(new Point2D(w, h));
+        qtree = new PointQuadtree(new Point2D(w, h));
     }
     
     @Override
@@ -97,14 +99,15 @@ public class JavaFXSwingApplication1 extends Application{
                 else {
                     Point2D pto = new Point2D(Double.parseDouble(x_pto.getText()), Double.parseDouble(y_pto.getText()));
                     try {
-                        qtree.delete(pto);
-                        ptos.remove(pto);
-                        drawQuadtree(canvas.getGraphicsContext2D());
-                        x_pto.setText("");
-                        y_pto.setText("");
-                    } catch(PointNotExistsException e) {
-                        Alert a = new Alert(Alert.AlertType.ERROR, "Point ("+x_pto.getText()+";"+y_pto.getText()+") doesn't exist");
-                        a.show();
+                        if(qtree.delete(pto)) {
+                            ptos.remove(pto);
+                            drawQuadtree(canvas.getGraphicsContext2D());
+                            x_pto.setText("");
+                            y_pto.setText("");
+                        } else {
+                            Alert a = new Alert(Alert.AlertType.ERROR, "Point (" + x_pto.getText() + ";" + y_pto.getText() + ") doesn't exist");
+                            a.show();
+                        }
                     } catch(NullPointerException e) {
                         // Ignore null execption
                     }
