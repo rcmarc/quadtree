@@ -163,12 +163,13 @@ public class JavaFXSwingApplication1 extends Application{
         });
     }
     
-    private void drawSubQuadtree(GraphicsContext g, Quadtree q) {             
-        g.strokeLine(q.getOffset().getX()+q.getDimension().getX()/2, q.getOffset().getY(), 
-                    q.getOffset().getX()+q.getDimension().getX()/2, q.getOffset().getY()+q.getDimension().getY());
-        g.strokeLine(q.getOffset().getX(), q.getOffset().getY()+q.getDimension().getY()/2, 
-                     q.getOffset().getX()+q.getDimension().getX(), q.getOffset().getY()+q.getDimension().getY()/2);
-        
+    private void drawSubQuadtree(GraphicsContext g, Quadtree q) {
+        if (!q.isLeaf()) {
+            g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY(),
+                    q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY() + q.getDimension().getY());
+            g.strokeLine(q.getOffset().getX(), q.getOffset().getY() + q.getDimension().getY() / 2,
+                    q.getOffset().getX() + q.getDimension().getX(), q.getOffset().getY() + q.getDimension().getY() / 2);
+        }
         if(q.getQuadrants()[0] != null) drawSubQuadtree(g, q.getQuadrants()[0]);
         if(q.getQuadrants()[1] != null) drawSubQuadtree(g, q.getQuadrants()[1]);
         if(q.getQuadrants()[2] != null) drawSubQuadtree(g, q.getQuadrants()[2]);
