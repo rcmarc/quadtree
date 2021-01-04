@@ -7,9 +7,8 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import com.github.rcmarc.quadtree.core.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -33,9 +32,7 @@ import javafx.scene.transform.NonInvertibleTransformException;
 
 // Arregla esto que a mi no me dejo importarlo del proyecto original
 // Esto lo tengo yo para probar que funciona bien.
-import com.github.rcmarc.quadtree.core.NoDepthLimitQuadtree;
-import com.github.rcmarc.quadtree.core.Data;
-import com.github.rcmarc.quadtree.core.Point2D;
+
 
 public class JavaFXSwingApplication1 extends Application{
 
@@ -55,7 +52,7 @@ public class JavaFXSwingApplication1 extends Application{
         // Paint plane
         canvas = new Canvas(w, h);
         ptos = new LinkedList<>();
-        qtree = new Quadtree(new Point2D(w, h));
+        qtree = new NoDepthLimitQuadtree(new Point2D(w, h));
     }
     
     @Override
