@@ -43,7 +43,7 @@ class PointQuadtreeTest {
         assertTrue(tree.getQuadrants()[0].getQuadrants()[2].isEmpty());
         assertFalse(tree.isEmpty());
         tree.delete(point_2);
-        assertTrue(tree.getQuadrants()[0].getQuadrants()[3].isEmpty());
+        assertTrue(tree.isLeaf());
         assertFalse(tree.isEmpty());
         tree.delete(point_3);
         assertTrue(tree.isEmpty());

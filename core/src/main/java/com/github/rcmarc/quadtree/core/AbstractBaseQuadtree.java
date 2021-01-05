@@ -2,6 +2,7 @@ package com.github.rcmarc.quadtree.core;
 
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -16,6 +17,7 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
     private final QuadtreeDivider divider;
     private final QuadrantGetter quadrantGetter;
     private final Quadtree[] quadrants;
+    private final PointGetter pointGetter;
     private final boolean allowLeaf;
 
     private int dataCount = 0;
@@ -36,6 +38,7 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
         divider = new QuadtreeDivider(getQuadtreeProvider());
         quadrantGetter = getQuadrantGetter();
         this.allowLeaf = allowLeaf;
+        pointGetter = new PointGetter();
     }
 
     @Override
@@ -155,9 +158,22 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
             }
             return true;
         }
-        boolean b = getQuadrantsAndDelete(point);
-        if (b) deleteIfEmpty();
-        return b;
+
+        final boolean isPointDeleted = getQuadrantsAndDelete(point);
+
+        if (isPointDeleted) {
+           final boolean wereQuadrantsDeleted = deleteIfEmpty();
+           if (!wereQuadrantsDeleted) tryToReduce();
+        }
+        return isPointDeleted;
+    }
+
+    private void tryToReduce() {
+        if (pointGetter.getDataSize(this) <= getMaxDataAllowed()) {
+            List<Data<?>> list = pointGetter.getAllData(this);
+            Arrays.fill(quadrants, null);
+            list.forEach(d -> insert(d, false));
+        }
     }
 
     @Override
@@ -173,9 +189,10 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
         return Objects.hash(dimension, offset);
     }
 
-    private void deleteIfEmpty() {
-        if (Arrays.stream(quadrants).allMatch(Quadtree::isEmpty))
-            Arrays.fill(quadrants, null);
+    private boolean deleteIfEmpty() {
+        final boolean areAllQuadrantsEmpty =  Arrays.stream(quadrants).allMatch(Quadtree::isEmpty);
+        if (areAllQuadrantsEmpty) Arrays.fill(quadrants, null);
+        return areAllQuadrantsEmpty;
     }
 
     private boolean getQuadrantsAndDelete(Point2D point) {

@@ -54,7 +54,7 @@ public class JavaFXSwingApplication1 extends Application{
         // Paint plane
         canvas = new Canvas(w, h);
         ptos = new LinkedList<>();
-        qtree = new PointQuadtree(new Point2D(w, h));
+        qtree = new PointQuadtree(new Point2D(w, h), new Point2D(0,0), 1);
     }
     
     @Override
@@ -97,7 +97,10 @@ public class JavaFXSwingApplication1 extends Application{
                     new Alert(Alert.AlertType.WARNING, "Some coordinate miss.")
                             .show();
                 else {
-                    Point2D pto = new Point2D(Double.parseDouble(x_pto.getText()), Double.parseDouble(y_pto.getText()));
+                    Point2D pto = new Point2D(
+                            Double.parseDouble(x_pto.getText()),
+                            getY(Double.parseDouble(y_pto.getText()), h)
+                    );
                     try {
                         if(qtree.delete(pto)) {
                             ptos.remove(pto);
@@ -123,7 +126,7 @@ public class JavaFXSwingApplication1 extends Application{
             canvas.getGraphicsContext2D()
                     .fillOval(x, y, 5, 5);
             
-            Point2D p = new Point2D(x, y);
+            Point2D p = new Point2D(x, getY(y, h));
             ptos.push(p);
             qtree.insert(new Data(0, p));
             select = null;
@@ -162,16 +165,16 @@ public class JavaFXSwingApplication1 extends Application{
         
         // Re-paint all points
         ptos.stream().forEach((p) -> {
-            g.fillOval(p.getX(), p.getY(), 5, 5);
+            g.fillOval(p.getX(), getY(p.getY(), h), 5, 5);
         });
     }
     
     private void drawSubQuadtree(GraphicsContext g, Quadtree q) {
         if (!q.isLeaf()) {
-            g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY(),
-                    q.getOffset().getX() + q.getDimension().getX() / 2, q.getOffset().getY() + q.getDimension().getY());
-            g.strokeLine(q.getOffset().getX(), q.getOffset().getY() + q.getDimension().getY() / 2,
-                    q.getOffset().getX() + q.getDimension().getX(), q.getOffset().getY() + q.getDimension().getY() / 2);
+            g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, getY(q.getOffset().getY(), h),
+                    q.getOffset().getX() + q.getDimension().getX() / 2, getY(q.getOffset().getY() + q.getDimension().getY(),h));
+            g.strokeLine(q.getOffset().getX(), getY(q.getOffset().getY() + q.getDimension().getY() / 2,h),
+                    q.getOffset().getX() + q.getDimension().getX(), getY(q.getOffset().getY() + q.getDimension().getY() / 2,h));
         }
         if(q.getQuadrants()[0] != null) drawSubQuadtree(g, q.getQuadrants()[0]);
         if(q.getQuadrants()[1] != null) drawSubQuadtree(g, q.getQuadrants()[1]);
@@ -184,7 +187,7 @@ public class JavaFXSwingApplication1 extends Application{
         s.setOnMouseClicked((MouseEvent event) -> {
             double x = event.getSceneX();
             double y = event.getSceneY();
-            Point2D tmp = new Point2D(x, y);
+            Point2D tmp = new Point2D(x, getY(y, h));
             
             if(x > w || x < 0 || y > h || y < 0) return;
             
@@ -200,8 +203,8 @@ public class JavaFXSwingApplication1 extends Application{
             { 
                 canvas.getGraphicsContext2D()
                     .fillOval(x, y, 5, 5);
-                Point2D p = new Point2D(x, y);
-                System.out.println(x+" "+y);
+                Point2D p = new Point2D(x, getY(y, h));
+                System.out.println(x+" "+getY(y, h));
                 ptos.push(p);
                 qtree.insert(new Data(0, p));
                 select = null;
@@ -209,6 +212,10 @@ public class JavaFXSwingApplication1 extends Application{
             }
         });
         return s;
+    }
+
+    static double getY(double y, double dimensionY) {
+        return dimensionY - y;
     }
 }
 
