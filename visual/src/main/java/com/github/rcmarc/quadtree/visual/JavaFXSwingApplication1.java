@@ -3,10 +3,8 @@
  */
 package com.github.rcmarc.quadtree.visual;
 
-import java.io.IOException;
+import java.util.Optional;
 import java.util.Random;
-import java.util.Arrays;
-import java.util.LinkedList;
 
 import com.github.rcmarc.quadtree.core.*;
 import javafx.application.Application;
@@ -17,105 +15,72 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Separator;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.transform.Affine;
-import javafx.scene.transform.NonInvertibleTransformException;
 
 // Arregla esto que a mi no me dejo importarlo del proyecto original
 // Esto lo tengo yo para probar que funciona bien.
 import com.github.rcmarc.quadtree.core.PointQuadtree;
-import com.github.rcmarc.quadtree.core.Data;
 import com.github.rcmarc.quadtree.core.Point2D;
 
 public class JavaFXSwingApplication1 extends Application{
 
+    final static private double radius = 8;
+
     final private Canvas canvas;
     final private double w, h;
-    final private double real_rate = 100;
     // Point2D of us (this is for test)
-    final private LinkedList<Point2D> ptos;
     // import quadtree
     private Quadtree qtree;
 
     private Point2D select;
-    
+
+    private GraphicsContextInserter dataInserter;
+    private final PointContainerChecker pointChecker;
+
     public JavaFXSwingApplication1() {
         super();
         w = h = 550;
         // Paint plane
         canvas = new Canvas(w, h);
-        ptos = new LinkedList<>();
-        qtree = new PointQuadtree(new Point2D(w, h), new Point2D(0,0), 1);
+        qtree = buildQuadtree();
+
+        pointChecker = new InclusivePointContainerChecker();
+
+        dataInserter = buildDataInserter();
+
     }
-    
+
+    private Quadtree buildQuadtree() {
+        return new PointQuadtree(new Point2D(w, h), new Point2D(0,0), 1);
+    }
+
+    private GraphicsContextInserter buildDataInserter() {
+        return new GraphicsContextInserter.GraphicsContextInserterBuilder()
+                .withContext(canvas.getGraphicsContext2D())
+                .withQuadtree(qtree)
+                .build();
+    }
+
     @Override
-    public void start(Stage stage) throws IOException {        
+    public void start(Stage stage){
         Separator sep = new Separator(Orientation.VERTICAL);   
         Separator sep2 = new Separator(Orientation.HORIZONTAL);
         Separator sep3 = new Separator(Orientation.HORIZONTAL);
-        // Input point
-        TextField x_pto = new TextField();
-        TextField y_pto = new TextField();
-        x_pto.setPromptText("x axis");
-        x_pto.setMaxWidth(70);
-        y_pto.setPromptText("y axis");
-        y_pto.setMaxWidth(70);
-        
-//        Canvas y_axis = new Canvas(30, h);
-//        y_axis.getGraphicsContext2D().strokeLine(30, 30, 30, h);
-//        y_axis.getGraphicsContext2D().strokeText("100", 1, 40);
-//        y_axis.getGraphicsContext2D().strokeText("0", 10, h);
-//        
-//        Canvas x_axis = new Canvas(w, 30);
-//        x_axis.getGraphicsContext2D().strokeLine(30, 0, w-30, 0);
-//        x_axis.getGraphicsContext2D().strokeText("100", w-50, 15);
-//        
-//        HBox hb_can = new HBox(y_axis, canvas);
-//        VBox vb_can = new VBox(hb_can, x_axis);
-        
+
         // Button
         Button btn_del = new Button("Delete Point");
         btn_del.setAlignment(Pos.CENTER);
         btn_del.setOnMouseClicked((MouseEvent event) -> {
             // Function to delete points in quadtree
-            if(select != null) {
-                qtree.delete(select);
-                ptos.remove(select);
-                select = null;
-                drawQuadtree(canvas.getGraphicsContext2D());
-            } else {
-                if("".equals(x_pto.getText()) || "".equals(y_pto.getText()))
-                    new Alert(Alert.AlertType.WARNING, "Some coordinate miss.")
-                            .show();
-                else {
-                    Point2D pto = new Point2D(
-                            Double.parseDouble(x_pto.getText()),
-                            getY(Double.parseDouble(y_pto.getText()), h)
-                    );
-                    try {
-                        if(qtree.delete(pto)) {
-                            ptos.remove(pto);
-                            drawQuadtree(canvas.getGraphicsContext2D());
-                            x_pto.setText("");
-                            y_pto.setText("");
-                        } else {
-                            Alert a = new Alert(Alert.AlertType.ERROR, "Point (" + x_pto.getText() + ";" + y_pto.getText() + ") doesn't exist");
-                            a.show();
-                        }
-                    } catch(NullPointerException e) {
-                        // Ignore null execption
-                    }
-                }
-            }
+            getSelectedPoint().ifPresent(point -> GraphicsContextEliminator.deletePoint(canvas.getGraphicsContext2D(), qtree, point));
+
+            select = null;
         });
         
         Button btn_rand = new Button("Add random point");
@@ -123,14 +88,15 @@ public class JavaFXSwingApplication1 extends Application{
             Random rand = new Random();
             double x = w * rand.nextDouble();
             double y = h * rand.nextDouble();
-            canvas.getGraphicsContext2D()
-                    .fillOval(x, y, 5, 5);
-            
-            Point2D p = new Point2D(x, getY(y, h));
-            ptos.push(p);
-            qtree.insert(new Data(0, p));
+            dataInserter.insertData(getPoint(x, JavaFXHelper.getY(y, h)));
             select = null;
-            drawQuadtree(canvas.getGraphicsContext2D());
+        });
+
+        Button clear_btn = new Button("Clear");
+        clear_btn.setOnAction(event -> {
+            qtree = buildQuadtree();
+            dataInserter = buildDataInserter();
+            canvas.getGraphicsContext2D().clearRect(0,0,canvas.getWidth(),canvas.getHeight());
         });
         
         StackPane root = createRoot();
@@ -138,12 +104,8 @@ public class JavaFXSwingApplication1 extends Application{
         VBox vBox = new VBox(10);
         vBox.setPadding(new Insets(100, 20, 0, 5));
         HBox hBox = new HBox(10);
-        // hBox.setPadding(new Insets(10, 0, 10, 10));
-        HBox hBtn = new HBox(10);
-        //FXMLLoader loader = new FXMLLoader(getClass().getResource("MainView.fxml"));
-        //Parent root = loader.load();
-        hBtn.getChildren().addAll(x_pto, y_pto);
-        vBox.getChildren().addAll(sep3, hBtn, btn_del, sep2, btn_rand);
+
+        vBox.getChildren().addAll(btn_del, sep2, btn_rand, sep3, clear_btn);
         hBox.getChildren().addAll(canvas, sep, vBox);
         root.getChildren().add(hBox);
         
@@ -156,66 +118,42 @@ public class JavaFXSwingApplication1 extends Application{
         launch();
     }
 
-    // draw the quadtree
-    private void drawQuadtree(GraphicsContext g) {
-        g.clearRect(0, 0, w, h);
-        
-        // Build quadtree
-        drawSubQuadtree(g, qtree);
-        
-        // Re-paint all points
-        ptos.stream().forEach((p) -> {
-            g.fillOval(p.getX(), getY(p.getY(), h), 5, 5);
-        });
-    }
-    
-    private void drawSubQuadtree(GraphicsContext g, Quadtree q) {
-        if (!q.isLeaf()) {
-            g.strokeLine(q.getOffset().getX() + q.getDimension().getX() / 2, getY(q.getOffset().getY(), h),
-                    q.getOffset().getX() + q.getDimension().getX() / 2, getY(q.getOffset().getY() + q.getDimension().getY(),h));
-            g.strokeLine(q.getOffset().getX(), getY(q.getOffset().getY() + q.getDimension().getY() / 2,h),
-                    q.getOffset().getX() + q.getDimension().getX(), getY(q.getOffset().getY() + q.getDimension().getY() / 2,h));
-        }
-        if(q.getQuadrants()[0] != null) drawSubQuadtree(g, q.getQuadrants()[0]);
-        if(q.getQuadrants()[1] != null) drawSubQuadtree(g, q.getQuadrants()[1]);
-        if(q.getQuadrants()[2] != null) drawSubQuadtree(g, q.getQuadrants()[2]);
-        if(q.getQuadrants()[3] != null) drawSubQuadtree(g, q.getQuadrants()[3]);
-    }
+
     
     private StackPane createRoot() {
         StackPane s = new StackPane();
         s.setOnMouseClicked((MouseEvent event) -> {
+            GraphicsContext context = canvas.getGraphicsContext2D();
+
             double x = event.getSceneX();
             double y = event.getSceneY();
-            Point2D tmp = new Point2D(x, getY(y, h));
+            Point2D tmp = getPoint(x, JavaFXHelper.getY(y, h));
             
             if(x > w || x < 0 || y > h || y < 0) return;
-            
-            int index = Arrays.binarySearch(ptos.toArray(), tmp);
-            if(index != -1)
-            {
-                canvas.getGraphicsContext2D().setFill(Color.RED);
-                canvas.getGraphicsContext2D()
-                    .fillOval(x, y, 5, 5);
-                canvas.getGraphicsContext2D().setFill(Color.BLACK);
-                select = tmp;
-            } else
-            { 
-                canvas.getGraphicsContext2D()
-                    .fillOval(x, y, 5, 5);
-                Point2D p = new Point2D(x, getY(y, h));
-                System.out.println(x+" "+getY(y, h));
-                ptos.push(p);
-                qtree.insert(new Data(0, p));
+
+            pointChecker.getDataIfExists(qtree, tmp).ifPresentOrElse(data -> {
+
+                getSelectedPoint().ifPresent(point -> QuadtreeDrawer.drawPoint(context, point));
+
+                context.setFill(Color.RED);
+                QuadtreeDrawer.drawPoint(context, data.getPoint());
+                context.setFill(Color.BLACK);
+                select = data.getPoint();
+            },() -> {
+                dataInserter.insertData(tmp);
                 select = null;
-                drawQuadtree(canvas.getGraphicsContext2D());
-            }
+            });
         });
         return s;
     }
 
-    static double getY(double y, double dimensionY) {
-        return dimensionY - y;
+    Optional<Point2D> getSelectedPoint() {
+        return Optional.ofNullable(select);
     }
+
+    static Point2D getPoint(double x, double y) {
+        return new Point2D(x,y, radius);
+    }
+
 }
 
