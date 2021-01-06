@@ -1,5 +1,7 @@
 package com.github.rcmarc.quadtree.core;
 
+import java.util.Optional;
+
 public interface PointContainerChecker {
 
     /**
@@ -10,4 +12,6 @@ public interface PointContainerChecker {
      * @return {@code true} if the {@link Point2D} exists, false otherwise.
      */
     boolean contains(Quadtree tree, Point2D point);
+
+    Optional<? extends Data<?>> getDataIfExists(Quadtree tree, Point2D point);
 }
