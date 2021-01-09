@@ -15,11 +15,11 @@ public class Main extends Application {
     final double radius = 5;
     final double width = 1200;
     final double height = 600;
-    final double speed = 400;
+    final double speed = 700;
 
     public void start(Stage stage) {
 
-        Point2DCircle[] circles = new Point2DCircle[100];
+        Point2DCircle[] circles = new Point2DCircle[300];
         IntStream.range(0, circles.length).forEach(i -> circles[i] = getCircle(radius,radius, radius));
 
         Group root = new Group(circles);
