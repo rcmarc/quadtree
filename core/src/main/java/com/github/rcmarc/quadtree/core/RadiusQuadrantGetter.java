@@ -3,6 +3,7 @@ package com.github.rcmarc.quadtree.core;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class RadiusQuadrantGetter implements QuadrantGetter {
@@ -20,6 +21,7 @@ public class RadiusQuadrantGetter implements QuadrantGetter {
         }
 
         return Arrays.stream(tree.getQuadrants())
+                .filter(Objects::nonNull)
                 .filter(q -> boundaryHelper.isPointRadiusOverlayingQuadtree(q, point))
                 .collect(Collectors.toList());
     }
