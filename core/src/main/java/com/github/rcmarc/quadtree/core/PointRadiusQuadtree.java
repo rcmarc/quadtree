@@ -25,7 +25,7 @@ public class PointRadiusQuadtree extends AbstractBaseQuadtree {
 
     @Override
     public PointContainerChecker getPointChecker() {
-        return new ExactPointContainerChecker();
+        return new InclusivePointContainerChecker();
     }
 
     @Override
