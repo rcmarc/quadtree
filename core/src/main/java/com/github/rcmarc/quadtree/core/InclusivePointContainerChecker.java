@@ -20,7 +20,7 @@ public class InclusivePointContainerChecker implements PointContainerChecker{
             return Arrays.stream(tree.getAllData())
                     .filter(Objects::nonNull)
                     .map(Data::getPoint)
-                    .anyMatch(p -> isIn(p, point));
+                    .anyMatch(p -> isIn(point, p));
         }
 
         return contains(getter.getQuadrants(tree, point).get(0),point);

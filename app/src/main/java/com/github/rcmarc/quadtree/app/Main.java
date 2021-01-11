@@ -1,46 +1,42 @@
 package com.github.rcmarc.quadtree.app;
 
-import com.github.rcmarc.quadtree.core.Point2D;
+import com.github.rcmarc.quadtree.app.config.AppConfig;
+import com.github.rcmarc.quadtree.app.interfaces.NodeAnimator;
+import com.github.rcmarc.quadtree.core.*;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import java.util.Arrays;
-import java.util.stream.IntStream;
+import javafx.util.Duration;
 
 public class Main extends Application {
 
-    final double radius = 5;
-    final double width = 1200;
-    final double height = 600;
-    final double speed = 700;
+    final double width = AppConfig.DEFAULT_CONFIG.getWidth();
+    final double height = AppConfig.DEFAULT_CONFIG.getHeight();
+    Duration duration = AppConfig.DEFAULT_CONFIG.getAnimationDuration();
+
+    NodeAnimator nodeAnimator = AppConfig.DEFAULT_CONFIG.getNodeAnimator();
+    MouseEventCircleMapper mapper = new MouseEventCircleMapper();
 
     public void start(Stage stage) {
 
-        Point2DCircle[] circles = new Point2DCircle[300];
-        IntStream.range(0, circles.length).forEach(i -> circles[i] = getCircle(radius,radius, radius));
+        Group group = new Group();
 
-        Group root = new Group(circles);
-        Scene scene = new Scene(root, width, height);
-        stage.setTitle("Translate Example");
+        Scene scene = new Scene(group, width, height);
+        stage.setTitle("Quadtree Demo");
         stage.setScene(scene);
         stage.show();
 
-        Arrays.stream(circles).forEach(c -> CircleAnimator.animate(c, height,width, speed));
+        scene.setOnMouseClicked(event -> {
+            Point2DCircle circle = mapper.map(event);
+            group.getChildren().add(circle);
+            nodeAnimator.animate(circle,height, width, duration);
+        });
+
     }
 
-    static Point2DCircle getCircle(double x, double y, double radius) {
-        Point2DCircle circle = new Point2DCircle(new Point2D(x,y,radius));
-        circle.setFill(randomColor());
-        return circle;
-    }
-
-    static Color randomColor() {
-        return Color.color(RandomContainer.nextDouble(0,1),
-                RandomContainer.nextDouble(0,1),
-                RandomContainer.nextDouble(0, 1));
+    Data<Void> emptyData(Point2D point) {
+        return new Data<>(null, point);
     }
 
     public static void main(String[] args) {
