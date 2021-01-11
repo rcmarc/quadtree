@@ -1,10 +1,8 @@
 package com.github.rcmarc.quadtree.core;
 
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 public abstract class AbstractBaseQuadtree implements Quadtree {
@@ -22,6 +20,8 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
 
     private int dataCount = 0;
     private int depth;
+    private Consumer<Quadtree[]> onSubdivideAction;
+    private Consumer<Quadtree> onReduceAction;
 
     public AbstractBaseQuadtree(Point2D dimension, Point2D offset, int maxDataAllowed, int maxDepth, boolean allowLeaf) {
         this(dimension,offset,maxDataAllowed, 0, maxDepth, allowLeaf);
@@ -86,6 +86,24 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
         return insert(data, true);
     }
 
+    @Override
+    public void onSubdivide(Consumer<Quadtree[]> consumer) {
+        onSubdivideAction = consumer;
+    }
+
+    @Override
+    public void onReduced(Consumer<Quadtree> consumer) {
+        onReduceAction = consumer;
+    }
+
+    public Optional<Consumer<Quadtree[]>> getOnSubdivide() {
+        return Optional.ofNullable(onSubdivideAction);
+    }
+
+    public Optional<Consumer<Quadtree>> getOnReduce() {
+        return Optional.ofNullable(onReduceAction);
+    }
+
     public boolean insertAll(Data<?>... collection){
         try {
             if(!Arrays.stream(collection).allMatch(this::insert)) throw new Exception();
@@ -102,15 +120,23 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
                 return false;
             if (getDataCount() == getMaxDataAllowed()) {
 
-                if (getDepth() == getMaxDepth()) {
+                if ((getDepth() == getMaxDepth()) && !allowLeaf()) {
                     return false;
                 }
 
                 divider.subdivide(this);
 
-                onSubdivide();
+                getOnSubdivide().ifPresent(action -> {
+                    Arrays.stream(getQuadrants()).forEach(quadtree -> quadtree.onSubdivide(action));
+                });
+
+                depth++;
+                reinsertAll();
+                clearData();
 
                 getQuadrantsAndInsert(data, true);
+
+                getOnSubdivide().ifPresent(action -> action.accept(getQuadrants()));
             } else {
                 setData(data, dataCount++);
             }
@@ -118,12 +144,6 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
             getQuadrantsAndInsert(data, true);
         }
         return true;
-    }
-
-    protected void onSubdivide() {
-        depth++;
-        reinsertAll();
-        clearData();
     }
 
     private void reinsertAll() {
@@ -162,18 +182,24 @@ public abstract class AbstractBaseQuadtree implements Quadtree {
         final boolean isPointDeleted = getQuadrantsAndDelete(point);
 
         if (isPointDeleted) {
-           final boolean wereQuadrantsDeleted = deleteIfEmpty();
-           if (!wereQuadrantsDeleted) tryToReduce();
+           boolean wereQuadrantsDeleted = deleteIfEmpty();
+           if (!wereQuadrantsDeleted) wereQuadrantsDeleted = tryToReduce();
+           if (wereQuadrantsDeleted) {
+              getOnReduce().ifPresent(action -> action.accept(this));
+            }
         }
+
         return isPointDeleted;
     }
 
-    private void tryToReduce() {
+    private boolean tryToReduce() {
         if (pointGetter.getDataSize(this) <= getMaxDataAllowed()) {
             List<Data<?>> list = pointGetter.getAllData(this);
             Arrays.fill(quadrants, null);
             list.forEach(d -> insert(d, false));
+            return true;
         }
+        return false;
     }
 
     @Override

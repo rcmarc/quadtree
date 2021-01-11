@@ -1,5 +1,7 @@
 package com.github.rcmarc.quadtree.core;
 
+import java.util.function.Consumer;
+
 public interface Quadtree {
     /**
      * This method should return the max number of {@link Data} instances allowed
@@ -100,4 +102,8 @@ public interface Quadtree {
      * @return {@code true} if this {@link Quadtree} allows to be subdivided in four {@link AtomicLeafQuadtree}
      */
     boolean allowLeaf();
+
+    void onSubdivide(Consumer<Quadtree[]> consumer);
+
+    void onReduced(Consumer<Quadtree> consumer);
 }
