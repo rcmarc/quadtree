@@ -18,7 +18,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.util.LinkedList;
@@ -37,7 +36,7 @@ public class Main extends Application {
     Quadtree quadtree;
     Group group = new Group();
     SimpleDoubleProperty checksPerSecond = new SimpleDoubleProperty();
-
+    long count = 0;
     public void start(Stage stage) {
         HBox root = new HBox();
         quadtreeConfig.setMaxDepth(5);
@@ -52,6 +51,7 @@ public class Main extends Application {
 
         TextField fieldRadius = new TextField();
         fieldRadius.setPromptText("Radius");
+        fieldRadius.setTooltip(new Tooltip("From %f to %f".formatted(appConfig.getMinRadius(), appConfig.getMaxRadius())));
         fieldRadius.textProperty().set(appConfig.getRadius() + "");
         fieldRadius.textProperty().addListener((observable, oldValue, newValue) -> {
             getDouble(newValue).ifPresentOrElse(value -> {
@@ -69,6 +69,7 @@ public class Main extends Application {
 
         TextField fieldWidth = new TextField();
         fieldWidth.setPromptText("Width");
+        fieldWidth.setTooltip(new Tooltip("From %f to %f".formatted(appConfig.getMinWidth(), appConfig.getMaxWidth())));
         fieldWidth.textProperty().set(appConfig.getWidth() + "");
         fieldWidth.textProperty().addListener((observable, oldValue, newValue) -> {
             getDouble(newValue).ifPresentOrElse(value -> {
@@ -91,6 +92,7 @@ public class Main extends Application {
 
         TextField fieldHeight = new TextField();
         fieldHeight.setPromptText("Height");
+        fieldHeight.setTooltip(new Tooltip("From %f to %f".formatted(appConfig.getMinHeight(), appConfig.getMaxHeight())));
         fieldHeight.textProperty().set(appConfig.getHeight() + "");
         fieldHeight.textProperty().addListener((observable, oldValue, newValue) -> {
             getDouble(newValue).ifPresentOrElse(value -> {
@@ -222,14 +224,13 @@ public class Main extends Application {
     }
 
     private void withoutQuadtree() {
-        long count = 0;
+        count = 0;
         for (var p : particles) {
             boolean match = false;
             for (var p1 : particles) {
                 count++;
                 if (!p.getPoint().equals(p1.getPoint()))
                     if (intersects(p.getPoint(), p1.getPoint())) {
-
                         match = true;
                         break;
                     }
@@ -245,19 +246,10 @@ public class Main extends Application {
 
     private void withQuadtree() {
         initQuadtree();
-        double count = 0;
+        count = 0;
         for (var p : particles) {
-            boolean match = false;
-            var others = quadtree.query(p.getPoint());
-            for (var p1 : others) {
-                count++;
-                if (!p.getPoint().equals(p1))
-                    if (intersects(p.getPoint(), p1)) {
-                        match = true;
-                        break;
-                    }
-            }
-            if (match) {
+            count++;
+            if (quadtree.arePointsInRange(p.getPoint())) {
                 p.setFill(Color.BLACK);
             } else {
                 p.setFill(p.getInitialColor());

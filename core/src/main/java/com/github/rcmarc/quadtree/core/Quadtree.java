@@ -35,6 +35,14 @@ public abstract class Quadtree {
         return getQuery().query(this, point);
     }
 
+    public boolean arePointsInRange(Point2D point) {
+        return getQuery().arePointsInRange(this, point);
+    }
+
+    public long pointsInRange(Point2D range) {
+        return getQuery().pointsInRange(this, range);
+    }
+
     Quadtree genUpperLeftQuadrant() {
         return getProvider().provide(
                 getDimension().divide(2),

@@ -6,7 +6,7 @@
     <groupId>com.github.rcmarc.quadtree</groupId>
     <artifactId>quadtree</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <name>quadtree</name>
     <properties>
         <maven.compiler.source>15</maven.compiler.source>
