@@ -7,7 +7,6 @@ import com.github.rcmarc.quadtree.app.interfaces.QuadtreeDrawer;
 import com.github.rcmarc.quadtree.core.*;
 import javafx.application.Application;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -19,9 +18,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -40,12 +39,10 @@ public class Main extends Application {
     SimpleDoubleProperty checksPerSecond = new SimpleDoubleProperty();
 
     public void start(Stage stage) {
-
+        HBox root = new HBox();
         quadtreeConfig.setMaxDepth(5);
         quadtreeConfig.setMaxPoints(3);
         appConfig.setRadius(3);
-        appConfig.setHeight(500);
-        appConfig.setWidth(700);
 
         quadtree = createQuadtree();
 
@@ -53,23 +50,68 @@ public class Main extends Application {
         p.setMinSize(appConfig.getWidth(), appConfig.getHeight());
         p.setMaxSize(appConfig.getWidth(), appConfig.getHeight());
 
+        TextField fieldWidth = new TextField();
+        fieldWidth.setPromptText("Width");
+        fieldWidth.textProperty().set(appConfig.getWidth() + "");
+        fieldWidth.textProperty().addListener((observable, oldValue, newValue) -> {
+            getDouble(newValue).ifPresentOrElse(value -> {
+                if (value < appConfig.getMinWidth() || value > appConfig.getMaxWidth()) {
+                    return;
+                }
+                appConfig.setWidth(value);
+                quadtree = createQuadtree();
+                p.setMinWidth(value);
+                stage.setWidth(value + 300);
+                nodeAnimator.stop();
+                nodeAnimator.animateAll(particles, appConfig.getHeight(), appConfig.getWidth(), appConfig.getAnimationDuration(), this::onParticleMoved);
+            }, () -> fieldWidth.setText(oldValue));
+        });
+        Label labelWidth = new Label("Width: ");
+        HBox hBoxWidth = new HBox(labelWidth, fieldWidth);
+        hBoxWidth.setSpacing(5);
+
+        TextField fieldHeight = new TextField();
+        fieldHeight.setPromptText("Height");
+        fieldHeight.textProperty().set(appConfig.getHeight() + "");
+        fieldHeight.textProperty().addListener((observable, oldValue, newValue) -> {
+            getDouble(newValue).ifPresentOrElse(value -> {
+                if (value < appConfig.getMinHeight() || value > appConfig.getMaxHeight()) {
+                    return;
+                }
+                appConfig.setHeight(value);
+                quadtree = createQuadtree();
+                p.setMinHeight(value);
+                stage.setHeight(value + 300);
+                nodeAnimator.stop();
+                nodeAnimator.animateAll(particles, appConfig.getHeight(), appConfig.getWidth(), appConfig.getAnimationDuration(), this::onParticleMoved);
+            }, () -> {
+                fieldHeight.setText(oldValue);
+            });
+        });
+        Label labelHeight = new Label("Height: ");
+        HBox hBoxHeight = new HBox(labelHeight, fieldHeight);
+        hBoxHeight.setSpacing(5);
+
         TextField fieldMaxPoints = new TextField();
         fieldMaxPoints.setPromptText("Max Points");
         fieldMaxPoints.textProperty().set(quadtreeConfig.getMaxPoints() + "");
+        fieldMaxPoints.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxPoints(getInt(newValue).orElse(quadtreeConfig.getMaxPoints())));
+        Label labelMaxPoints = new Label("Max Points: ");
+        HBox hBoxMaxPoints = new HBox(labelMaxPoints, fieldMaxPoints);
+        hBoxMaxPoints.setSpacing(5);
+
         TextField fieldMaxDepth = new TextField();
         fieldMaxDepth.setPromptText("Max Depth");
         fieldMaxDepth.textProperty().set(quadtreeConfig.getMaxDepth() + "");
-        onlyNumbers(fieldMaxDepth, fieldMaxPoints);
         fieldMaxDepth.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxDepth(getInt(newValue).orElse(quadtreeConfig.getMaxDepth())));
-        fieldMaxPoints.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxPoints(getInt(newValue).orElse(quadtreeConfig.getMaxPoints())));
+        Label labelMaxDepth = new Label("Max Depth: ");
+        HBox hBoxMaxDepth = new HBox(labelMaxDepth, fieldMaxDepth);
+        hBoxMaxDepth.setSpacing(5);
 
+        onlyNumbers(fieldMaxDepth, fieldMaxPoints);
 
         Button btnAdd100Points = new Button("Add 100 points");
         btnAdd100Points.setAlignment(Pos.CENTER);
-        Separator sep = new Separator(Orientation.VERTICAL);
-
-        HBox b1 = new HBox(fieldMaxPoints, sep, fieldMaxDepth);
-        b1.setSpacing(5);
 
         Separator sep1 = new Separator(Orientation.VERTICAL);
 
@@ -96,10 +138,10 @@ public class Main extends Application {
         HBox hBox = new HBox(checksLabel, checksPerSecondLabel);
         hBox.setSpacing(5);
 
-        VBox v1 = new VBox(b1, rb1, rb2, btnAdd100Points, hBox);
+        VBox v1 = new VBox(hBoxWidth, hBoxHeight, hBoxMaxDepth, hBoxMaxPoints, rb1, rb2, btnAdd100Points, hBox);
         v1.setSpacing(10);
         v1.setPadding(new Insets(100, 20, 0, 20));
-        HBox root = new HBox(p, sep1, v1);
+        root.getChildren().addAll(p, sep1, v1);
 
         btnAdd100Points.setOnAction(event -> addPoints(100));
 
@@ -123,11 +165,20 @@ public class Main extends Application {
         }
     }
 
+    private Optional<Double> getDouble(String number) {
+        try {
+            return Optional.of(Double.parseDouble(number));
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
+        }
+    }
+
+
     private void onlyNumbers(TextField... fields) {
         for (var field : fields) {
             field.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (!newValue.matches("\\d*")) {
-                    field.setText(newValue.replaceAll("[^\\d]", ""));
+                    field.setText(oldValue);
                 }
             });
         }

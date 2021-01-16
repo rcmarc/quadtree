@@ -2,7 +2,6 @@ package com.github.rcmarc.quadtree.app;
 
 import com.github.rcmarc.quadtree.app.interfaces.BoundGetter;
 import com.github.rcmarc.quadtree.app.interfaces.NodeAnimator;
-import com.github.rcmarc.quadtree.visual.JavaFXHelper;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
@@ -11,9 +10,15 @@ import java.util.Collection;
 
 public class BoundCircleAnimator implements NodeAnimator {
     private final BoundGetter boundGetter;
+    private Timeline loop;
 
     public BoundCircleAnimator(BoundGetter boundGetter) {
         this.boundGetter = boundGetter;
+    }
+
+    @Override
+    public void stop() {
+        loop.stop();
     }
 
     private double randomDelta() {
@@ -21,9 +26,9 @@ public class BoundCircleAnimator implements NodeAnimator {
     }
 
     @Override
-    public void animateAll(Collection<Point2DCircle> particles,double height, double width, Duration duration, Runnable action) {
-        final Timeline loop = new Timeline(new KeyFrame(duration, event -> {
-            particles.forEach(p -> animate(p,height,width,duration));
+    public void animateAll(Collection<Point2DCircle> particles, double height, double width, Duration duration, Runnable action) {
+        loop = new Timeline(new KeyFrame(duration, event -> {
+            particles.forEach(p -> animate(p, height, width, duration));
             action.run();
         }));
         loop.setCycleCount(Timeline.INDEFINITE);

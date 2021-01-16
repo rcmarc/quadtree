@@ -10,6 +10,8 @@ public interface NodeAnimator {
 
     void animateAll(Collection<Point2DCircle> particles, double height, double width, Duration duration, Runnable action);
 
+    void stop();
+
     void animate(Point2DCircle circle, double height, double width, Duration duration, Runnable action);
 
     default void animate(Point2DCircle circle, double height, double width, Duration duration) {

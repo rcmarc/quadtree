@@ -2,6 +2,7 @@ package com.github.rcmarc.quadtree.app.config;
 
 import com.github.rcmarc.quadtree.app.*;
 import com.github.rcmarc.quadtree.app.interfaces.*;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 
 public class AppConfig {
@@ -15,9 +16,13 @@ public class AppConfig {
     private QuadtreeDrawer quadtreeDrawer = new SimpleQuadtreeDrawer();
     private Duration animationDuration = Duration.millis(10);
     private double speed = 400;
-    private double height = 600;
-    private double width = 1300;
+    private double height = 500;
+    private double width = 700;
     private double radius = 5;
+    private double minWidth = width;
+    private double minHeight = height;
+    private final double maxWidth = Screen.getPrimary().getBounds().getWidth() - 300;
+    private final double maxHeight = Screen.getPrimary().getBounds().getHeight() - 100;
     private boolean useQuadtree = true;
     public static AppConfig DEFAULT_CONFIG = new AppConfig();
 
@@ -123,5 +128,29 @@ public class AppConfig {
 
     public void setUseQuadtree(boolean useQuadtree) {
         this.useQuadtree = useQuadtree;
+    }
+
+    public double getMinHeight() {
+        return minHeight;
+    }
+
+    public void setMinHeight(double minHeight) {
+        this.minHeight = minHeight;
+    }
+
+    public double getMinWidth() {
+        return minWidth;
+    }
+
+    public void setMinWidth(double minWidth) {
+        this.minWidth = minWidth;
+    }
+
+    public double getMaxHeight() {
+        return maxHeight;
+    }
+
+    public double getMaxWidth() {
+        return maxWidth;
     }
 }
