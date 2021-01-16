@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 public class Main extends Application {
     AppConfig appConfig = AppConfig.DEFAULT_CONFIG;
@@ -57,8 +58,8 @@ public class Main extends Application {
         TextField fieldMaxDepth = new TextField();
         fieldMaxDepth.setPromptText("Max Depth");
         onlyNumbers(fieldMaxDepth, fieldMaxPoints);
-        fieldMaxDepth.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxDepth(Integer.parseInt(newValue)));
-        fieldMaxPoints.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxPoints(Integer.parseInt(newValue)));
+        fieldMaxDepth.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxDepth(getInt(newValue).orElse(quadtreeConfig.getMaxDepth())));
+        fieldMaxPoints.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxPoints(getInt(newValue).orElse(quadtreeConfig.getMaxPoints())));
 
 
         Button btnAdd100Points = new Button("Add 100 points");
@@ -96,7 +97,7 @@ public class Main extends Application {
         VBox v1 = new VBox(b1, rb1, rb2, btnAdd100Points, hBox);
         v1.setSpacing(10);
         v1.setPadding(new Insets(100, 20, 0, 20));
-        HBox root = new HBox(p,sep1, v1);
+        HBox root = new HBox(p, sep1, v1);
 
         btnAdd100Points.setOnAction(event -> addPoints(100));
 
@@ -110,6 +111,14 @@ public class Main extends Application {
         nodeAnimator.animateAll(particles, appConfig.getHeight(), appConfig.getWidth(), appConfig.getAnimationDuration(), this::onParticleMoved);
         p.setOnMouseClicked(this::addPoint);
 
+    }
+
+    private Optional<Integer> getInt(String number) {
+        try {
+            return Optional.of(Integer.parseInt(number));
+        } catch (NumberFormatException ignored) {
+            return Optional.empty();
+        }
     }
 
     private void onlyNumbers(TextField... fields) {
@@ -163,7 +172,7 @@ public class Main extends Application {
     private void withQuadtree() {
         initQuadtree();
         double count = 0;
-        for(var p : particles) {
+        for (var p : particles) {
             boolean match = false;
             var others = quadtree.query(p.getPoint());
             for (var p1 : others) {
@@ -204,7 +213,7 @@ public class Main extends Application {
         addPoint(event.getSceneX(), event.getSceneY());
     }
 
-    private void addPoint(double x, double y){
+    private void addPoint(double x, double y) {
         Point2DCircle circle = circleFactory.buildCircle(new Point2D(
                 x, appConfig.getHeight() - y, appConfig.getRadius()
         ));
