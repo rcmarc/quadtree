@@ -36,6 +36,10 @@ public class Point2D implements Comparable<Point2D>{
         return radius;
     }
 
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
     public Point2D add(Point2D point){
         return new Point2D(x + point.x, y + point.y, radius);
     }

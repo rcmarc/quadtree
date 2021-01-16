@@ -50,6 +50,23 @@ public class Main extends Application {
         p.setMinSize(appConfig.getWidth(), appConfig.getHeight());
         p.setMaxSize(appConfig.getWidth(), appConfig.getHeight());
 
+        TextField fieldRadius = new TextField();
+        fieldRadius.setPromptText("Radius");
+        fieldRadius.textProperty().set(appConfig.getRadius() + "");
+        fieldRadius.textProperty().addListener((observable, oldValue, newValue) -> {
+            getDouble(newValue).ifPresentOrElse(value -> {
+                if (value < appConfig.getMinRadius() || value > appConfig.getMaxRadius()) {
+                    return;
+                }
+                appConfig.setRadius(value);
+                particles.forEach(this::setRadius);
+            }, () -> fieldRadius.setText(oldValue));
+            fieldRadius.selectAll();
+        });
+        Label labelRadius = new Label("Radius: ");
+        HBox hBoxRadius = new HBox(labelRadius, fieldRadius);
+        hBoxRadius.setSpacing(5);
+
         TextField fieldWidth = new TextField();
         fieldWidth.setPromptText("Width");
         fieldWidth.textProperty().set(appConfig.getWidth() + "");
@@ -62,9 +79,11 @@ public class Main extends Application {
                 quadtree = createQuadtree();
                 p.setMinWidth(value);
                 stage.setWidth(value + 300);
+                stage.centerOnScreen();
                 nodeAnimator.stop();
                 nodeAnimator.animateAll(particles, appConfig.getHeight(), appConfig.getWidth(), appConfig.getAnimationDuration(), this::onParticleMoved);
             }, () -> fieldWidth.setText(oldValue));
+            fieldWidth.selectAll();
         });
         Label labelWidth = new Label("Width: ");
         HBox hBoxWidth = new HBox(labelWidth, fieldWidth);
@@ -81,12 +100,14 @@ public class Main extends Application {
                 appConfig.setHeight(value);
                 quadtree = createQuadtree();
                 p.setMinHeight(value);
-                stage.setHeight(value + 300);
+                stage.setHeight(value + 100);
+                stage.centerOnScreen();
                 nodeAnimator.stop();
                 nodeAnimator.animateAll(particles, appConfig.getHeight(), appConfig.getWidth(), appConfig.getAnimationDuration(), this::onParticleMoved);
             }, () -> {
                 fieldHeight.setText(oldValue);
             });
+            fieldHeight.selectAll();
         });
         Label labelHeight = new Label("Height: ");
         HBox hBoxHeight = new HBox(labelHeight, fieldHeight);
@@ -138,7 +159,7 @@ public class Main extends Application {
         HBox hBox = new HBox(checksLabel, checksPerSecondLabel);
         hBox.setSpacing(5);
 
-        VBox v1 = new VBox(hBoxWidth, hBoxHeight, hBoxMaxDepth, hBoxMaxPoints, rb1, rb2, btnAdd100Points, hBox);
+        VBox v1 = new VBox(hBoxRadius, hBoxWidth, hBoxHeight, hBoxMaxDepth, hBoxMaxPoints, rb1, rb2, btnAdd100Points, hBox);
         v1.setSpacing(10);
         v1.setPadding(new Insets(100, 20, 0, 20));
         root.getChildren().addAll(p, sep1, v1);
@@ -289,6 +310,31 @@ public class Main extends Application {
         ));
         group.getChildren().add(circle);
         particles.add(circle);
+    }
+
+    private void setRadius(Point2DCircle circle) {
+        if (!isOutside(circle.getPoint())) {
+            circle.setRadius(appConfig.getRadius());
+            circle.getPoint().setRadius(appConfig.getRadius());
+        } else {
+            double radius = appConfig.getRadius();
+            double x = RandomContainer.nextDouble(radius * 2, appConfig.getWidth() - radius * 2);
+            double y = RandomContainer.nextDouble(radius * 2, appConfig.getHeight() - radius * 2);
+            circle.setRadius(radius);
+            circle.setCenterX(x);
+            circle.setCenterY(y);
+            circle.getPoint().setX(x);
+            circle.getPoint().setY(y);
+            circle.getPoint().setRadius(radius);
+        }
+    }
+
+    private boolean isOutside(Point2D point) {
+        return point.getX() + appConfig.getRadius() >= appConfig.getWidth() ||
+                point.getX() - appConfig.getRadius() <= 0 ||
+                point.getY() + appConfig.getRadius() >= appConfig.getHeight() ||
+                point.getY() - appConfig.getRadius() <= 0;
+
     }
 
     public static void main(String[] args) {

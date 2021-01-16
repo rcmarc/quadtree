@@ -23,6 +23,8 @@ public class AppConfig {
     private double minHeight = height;
     private final double maxWidth = Screen.getPrimary().getBounds().getWidth() - 300;
     private final double maxHeight = Screen.getPrimary().getBounds().getHeight() - 100;
+    private final double minRadius = 1;
+    private final double maxRadius  = 12;
     private boolean useQuadtree = true;
     public static AppConfig DEFAULT_CONFIG = new AppConfig();
 
@@ -152,5 +154,13 @@ public class AppConfig {
 
     public double getMaxWidth() {
         return maxWidth;
+    }
+
+    public double getMaxRadius() {
+        return maxRadius;
+    }
+
+    public double getMinRadius() {
+        return minRadius;
     }
 }
