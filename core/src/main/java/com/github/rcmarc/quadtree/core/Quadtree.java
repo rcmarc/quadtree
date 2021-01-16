@@ -1,109 +1,130 @@
 package com.github.rcmarc.quadtree.core;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public interface Quadtree {
-    /**
-     * This method should return the max number of {@link Data} instances allowed
-     * to be stored on the Quadtree, this number is equal to the max number of {@link Data}
-     * allowed plus the {@code Data} in middle point of this Quadtree
-     *
-     * @return The max number of {@link Data} instances allowed
-     */
-    int getMaxDataAllowed();
+public abstract class Quadtree {
 
-    /**
-     * This method should return the number of elements on this Quadtree, this number is
-     * equal to the number of elements plus the {@link Data} in middle point if {@code getMiddleData != null}
-     *
-     * @return The amount of {@link Data} on this Quadtree
-     */
-    int getDataCount();
+    private Consumer<Quadtree[]> onSubdivideAction;
+    private Consumer<Quadtree> onReducedAction;
+    private final Quadtree[] quadrants;
+    private final Point2D dimension;
+    private final Point2D offset;
+    private final int depth;
 
-    /**
-     *
-     * @return the max depth allowed by this {@link Quadtree}
-     */
-    int getMaxDepth();
+    public Quadtree(Point2D dimension, Point2D offset, int depth) {
+        this.depth = depth;
+        this.offset = offset;
+        this.dimension = dimension;
+        quadrants = new Quadtree[4];
+    }
 
-    /**
-     *
-     * @return the current depth of this {@link Quadtree}
-     */
-    int getDepth();
+    public abstract Collection<Point2D> getPoints();
 
+    protected abstract QuadtreeInserter getQuadtreeInserter();
 
-    /**
-     * This method should return the dimension of this Quadtree, which is a {@link Point2D}
-     * where the x field represents the width and the y field represents the height
-     *
-     * @return The dimension of this Quadtree
-     */
-    Point2D getDimension();
+    protected abstract QuadtreeDeleter getQuadtreeDeleter();
 
-    /**
-     * This method should return the offset of this Quadtree, which is the starting point of this
-     * Quadtree on the coordinate axis
-     *
-     * @return The offset of this Quadtree
-     */
-    Point2D getOffset();
+    protected abstract QuadtreeProvider getProvider();
 
-    /**
-     * This method should return all the quadrants on this Quadtree, if this Quadtree is a leaf
-     * this method will return an array with all his elements null
-     *
-     * @return All the quadrants off the Quadtree
-     */
-    Quadtree[] getQuadrants();
+    protected abstract QuadtreeQuery getQuery();
 
-    /**
-     * This method will insert the {@link Data} on this Quadtree and it will make the subdivision
-     * once {@code getDataCount() == getMaxDataAllowed()}. <br/>
-     *
-     * @param data The data to insert.
-     */
-    boolean insert(Data<?> data);
+    public Collection<Point2D> query(Point2D point) {
+        return getQuery().query(this, point);
+    }
 
-    /**
-     * This method will delete the {@link Data} located on the {@link Point2D} parameter
-     *
-     * @param point The point to delete.
-     */
-    boolean delete(Point2D point);
+    Quadtree genUpperLeftQuadrant() {
+        return getProvider().provide(
+                getDimension().divide(2),
+                new Point2D(getOffset().getX(), getOffset().getY() + getDimension().getY() / 2),
+                getDepth() + 1
+        );
+    }
 
-    /**
-     * This method will return all values inside the quadtree including the ones that are inside only by the radius size
-     * @return the values of this Quadtree
-     */
-    Data<?>[] getAllData();
+    Quadtree genUpperRightQuadrant() {
+        return getProvider().provide(
+                getDimension().divide(2),
+                new Point2D(getOffset().getX() + getDimension().getX() / 2, getOffset().getY() + getDimension().getY() / 2),
+                getDepth() + 1
+        );
+    }
 
-    /**
-     * The quadtree is leaf if all his sub quadrants are null, but this method only should check for null of one
-     * of his sub quadrants cause for definition a quadtree has four sub quadrants or zero.
-     *
-     * @return {@code true} if this Quadtree is leaf, {@code false} otherwise.
-     */
-    default boolean isLeaf() {
+    Quadtree genLowerLeftQuadrant() {
+        return getProvider().provide(
+                getDimension().divide(2),
+                getOffset(),
+                getDepth() + 1
+        );
+    }
+
+    Quadtree genLowerRightQuadrant() {
+        return getProvider().provide(
+                getDimension().divide(2),
+                new Point2D(getOffset().getX() + getDimension().getX() / 2, getOffset().getY()),
+                getDepth() + 1
+        );
+    }
+
+    public boolean insert(Point2D point) {
+        return getQuadtreeInserter().insert(this, point);
+    }
+
+    public boolean delete(Point2D point) {
+        return getQuadtreeDeleter().delete(this, point);
+    }
+
+    protected void clearPoints() {
+        getPoints().clear();
+    }
+
+    public Point2D getDimension() {
+        return dimension;
+    }
+
+    public Point2D getOffset() {
+        return offset;
+    }
+
+    public Quadtree[] getQuadrants() {
+        return quadrants;
+    }
+
+    public boolean isLeaf() {
         return getQuadrants()[0] == null;
     }
 
-    /**
-     * The Quadtree is empty if {@code isLeaf() == true} and has no data stored in it.
-     *
-     * @return {@code true} if is empty, false otherwise.
-     */
-    default boolean isEmpty() {
-        return getDataCount() == 0  && isLeaf();
+    public void onSubdivide(Consumer<Quadtree[]> action) {
+        onSubdivideAction = action;
     }
 
-    /**
-     *
-     * @return {@code true} if this {@link Quadtree} allows to be subdivided in four {@link AtomicLeafQuadtree}
-     */
-    boolean allowLeaf();
+    public void onReduced(Consumer<Quadtree> action) {
+        onReducedAction = action;
+    }
 
-    void onSubdivide(Consumer<Quadtree[]> consumer);
+    public int getDepth() {
+        return depth;
+    }
 
-    void onReduced(Consumer<Quadtree> consumer);
+    public Optional<Consumer<Quadtree[]>> getOnSubdivide() {
+        return Optional.ofNullable(onSubdivideAction);
+    }
+
+    public Optional<Consumer<Quadtree>> getOnReduced() {
+        return Optional.ofNullable(onReducedAction);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Quadtree quadtree = (Quadtree) o;
+        return dimension.equals(quadtree.dimension) && offset.equals(quadtree.offset);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dimension, offset);
+    }
 }

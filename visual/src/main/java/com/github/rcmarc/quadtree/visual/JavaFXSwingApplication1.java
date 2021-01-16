@@ -3,6 +3,8 @@
  */
 package com.github.rcmarc.quadtree.visual;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
@@ -38,26 +40,30 @@ public class JavaFXSwingApplication1 extends Application{
     // import quadtree
     private Quadtree qtree;
 
+    private PointChecker pointChecker;
+
     private Point2D select;
 
     private GraphicsContextInserter dataInserter;
-    private final PointContainerChecker pointChecker;
 
     public JavaFXSwingApplication1() {
         super();
         w = h = 550;
         // Paint plane
         canvas = new Canvas(w, h);
+
+        QuadtreeConfig config = QuadtreeConfig.getConfig();
+        config.setMaxDepth(4);
+        config.setMaxPoints(1);
+
         qtree = buildQuadtree();
-
-        pointChecker = new InclusivePointContainerChecker();
-
+        pointChecker = new SimplePointChecker();
         dataInserter = buildDataInserter();
 
     }
 
     private Quadtree buildQuadtree() {
-        return new PointQuadtree(new Point2D(w, h), new Point2D(0,0), 1);
+        return new PointQuadtree(new Point2D(w, h), 0);
     }
 
     private GraphicsContextInserter buildDataInserter() {
@@ -88,7 +94,7 @@ public class JavaFXSwingApplication1 extends Application{
             Random rand = new Random();
             double x = w * rand.nextDouble();
             double y = h * rand.nextDouble();
-            dataInserter.insertData(getPoint(x, JavaFXHelper.getY(y, h)));
+            dataInserter.insertPoint(getPoint(x, JavaFXHelper.getY(y, h)));
             select = null;
         });
 
@@ -131,20 +137,38 @@ public class JavaFXSwingApplication1 extends Application{
             
             if(x > w || x < 0 || y > h || y < 0) return;
 
-            pointChecker.getDataIfExists(qtree, tmp).ifPresentOrElse(data -> {
+            getPointInQuadtree(qtree, tmp).ifPresentOrElse(p -> {
 
                 getSelectedPoint().ifPresent(point -> QuadtreeDrawer.drawPoint(context, point));
 
                 context.setFill(Color.RED);
-                QuadtreeDrawer.drawPoint(context, data.getPoint());
+                QuadtreeDrawer.drawPoint(context, p);
                 context.setFill(Color.BLACK);
-                select = data.getPoint();
+                select = p;
             },() -> {
-                dataInserter.insertData(tmp);
+                dataInserter.insertPoint(tmp);
                 select = null;
             });
         });
         return s;
+    }
+
+    Optional<Point2D> getPointInQuadtree(Quadtree tree, Point2D point) {
+        if (tree.isLeaf()) {
+            return tree.getPoints().stream()
+                    .filter(p -> isPointIn(point, p))
+                    .findFirst();
+        }
+
+        return Arrays.stream(tree.getQuadrants())
+                .map(q -> getPointInQuadtree(q, point).orElse(null))
+                .filter(Objects::nonNull)
+                .findFirst();
+    }
+
+    boolean isPointIn(Point2D exact, Point2D radius) {
+        return exact.getX() <= radius.getX() + radius.getRadius() && exact.getX() >= radius.getX() - radius.getRadius() &&
+                exact.getY() <= radius.getY() + radius.getRadius() && exact.getY() >= radius.getY() - radius.getRadius();
     }
 
     Optional<Point2D> getSelectedPoint() {

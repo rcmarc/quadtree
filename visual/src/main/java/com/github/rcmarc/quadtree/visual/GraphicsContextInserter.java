@@ -1,6 +1,5 @@
 package com.github.rcmarc.quadtree.visual;
 
-import com.github.rcmarc.quadtree.core.Data;
 import com.github.rcmarc.quadtree.core.Point2D;
 import com.github.rcmarc.quadtree.core.Quadtree;
 import javafx.scene.canvas.GraphicsContext;
@@ -15,29 +14,16 @@ public class GraphicsContextInserter {
         this.tree = tree;
     }
 
-    boolean insertData(Data<?> data) {
-        return insertData(this, data);
+    boolean insertPoint(Point2D point) {
+        return insertPoint(this, point);
     }
 
-    <E> boolean insertData(double x, double y, E data) {
-        return insertData(this, new Data<>(data, new Point2D(x, y)));
+    boolean insertPoint(double x, double y) {
+        return insertPoint(this, x, y);
     }
 
-    boolean insertData(double x, double y) {
-        return insertData(this, x, y, null);
-    }
-
-    boolean insertData(Point2D point) {
-        return insertData(this, new Data<>(null, point));
-    }
-
-    <E> boolean insertData(Point2D point, E data) {
-        return insertData(this, new Data<>(data, point));
-    }
-
-    static boolean insertData(GraphicsContextInserter dataInserter, Data<?> data) {
-        if (dataInserter.tree.insert(data)) {
-            Point2D point = data.getPoint();
+    static boolean insertPoint(GraphicsContextInserter dataInserter, Point2D point) {
+        if (dataInserter.tree.insert(point)) {
             QuadtreeDrawer.drawPoint(dataInserter.context, point);
             QuadtreeDrawer.drawQuadtree(dataInserter.context, dataInserter.tree);
             return true;
@@ -45,20 +31,8 @@ public class GraphicsContextInserter {
         return false;
     }
 
-    static <E> boolean insertData(GraphicsContextInserter dataInserter, double x, double y, E data) {
-        return insertData(dataInserter, new Data<>(data, new Point2D(x, y)));
-    }
-
-    static boolean insertData(GraphicsContextInserter dataInserter, double x, double y) {
-        return insertData(dataInserter, x, y, null);
-    }
-
-    static boolean insertData(GraphicsContextInserter dataInserter, Point2D point) {
-        return insertData(dataInserter, new Data<>(null, point));
-    }
-
-    static <E> boolean insertData(GraphicsContextInserter dataInserter, Point2D point, E data) {
-        return insertData(dataInserter, new Data<>(data, point));
+    static boolean insertPoint(GraphicsContextInserter dataInserter, double x, double y) {
+        return insertPoint(dataInserter, new Point2D(x, y));
     }
 
     static class GraphicsContextInserterBuilder {

@@ -4,49 +4,36 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PointQuadtree extends Quadtree{
+public class RegionQuadtree extends Quadtree {
 
     List<Point2D> points;
-    QuadtreeDeleter deleter;
     QuadtreeInserter inserter;
+    QuadtreeDeleter deleter;
     QuadtreeQuery query;
 
-    public PointQuadtree(Point2D dimension, Point2D offset, int depth) {
+    public RegionQuadtree(Point2D dimension, Point2D offset, int depth) {
         super(dimension, offset, depth);
         points = new LinkedList<>();
         inserter = new SimpleQuadtreeInserter(
                 new SimplePointChecker(),
                 new SimpleQuadtreeDivider(),
-                new ExactQuadrantGetter()
+                new RadiusQuadrantGetter()
         );
         deleter = new SimpleQuadtreeDeleter(
                 new SimplePointChecker(),
                 new SimpleQuadtreeInserter(),
-                new ExactQuadrantGetter()
+                new RadiusQuadrantGetter()
         );
         query = new SimpleQuadtreeQuery();
     }
 
-    public PointQuadtree(Point2D dimension, int depth) {
+    public RegionQuadtree(Point2D dimension, int depth) {
         this(dimension, new Point2D(0, 0), depth);
     }
 
-    public PointQuadtree(Point2D dimension, Point2D offset) {
-        this(dimension, offset, 0);
-    }
-
-    public PointQuadtree(Point2D dimension) {
-        this(dimension, 0);
-    }
-
     @Override
-    public Collection<Point2D> getPoints() {
-        return points;
-    }
-
-    @Override
-    protected QuadtreeInserter getQuadtreeInserter() {
-        return inserter;
+    public QuadtreeQuery getQuery() {
+        return query;
     }
 
     @Override
@@ -55,13 +42,26 @@ public class PointQuadtree extends Quadtree{
     }
 
     @Override
-    protected QuadtreeProvider getProvider() {
-        return PointQuadtree::new;
+    protected QuadtreeInserter getQuadtreeInserter() {
+        return inserter;
     }
 
     @Override
-    public QuadtreeQuery getQuery() {
-        return query;
+    public Collection<Point2D> getPoints() {
+        return points;
+    }
+
+    @Override
+    protected QuadtreeProvider getProvider() {
+        return RegionQuadtree::new;
+    }
+
+    public void setInserter(QuadtreeInserter inserter) {
+        this.inserter = inserter;
+    }
+
+    public void setDeleter(QuadtreeDeleter deleter) {
+        this.deleter = deleter;
     }
 
     public static class Builder {
@@ -84,8 +84,8 @@ public class PointQuadtree extends Quadtree{
             return this;
         }
 
-        public PointQuadtree build() {
-            return new PointQuadtree(dimension, offset, depth);
+        public RegionQuadtree build() {
+            return new RegionQuadtree(dimension, offset, depth);
         }
 
     }

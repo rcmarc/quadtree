@@ -1,70 +1,26 @@
 package com.github.rcmarc.quadtree.app;
 
+import com.github.rcmarc.quadtree.core.Point2D;
 import com.github.rcmarc.quadtree.core.Quadtree;
 import com.github.rcmarc.quadtree.visual.JavaFXHelper;
 
 public class MyLineHelper {
 
-    private Quadtree tree;
-    private double offsetX;
-    private double offsetY;
-    private double dimensionX;
-    private double dimensionY;
-
-    public MyLineHelper(Quadtree tree) {
-        this.tree = tree;
-        initAttrs();
-    }
-
-    private void initAttrs() {
-        offsetY = tree.getOffset().getY();
-        offsetX = tree.getOffset().getX();
-        dimensionX = tree.getDimension().getX();
-        dimensionY = tree.getDimension().getY();
-    }
-
-    public void setTree(Quadtree tree) {
-        this.tree = tree;
-        initAttrs();
-    }
-
-    public MyLine getBottomTopLine() {
+    public MyLine getTopBottomLine(Quadtree tree, double height) {
+        Point2D offset = tree.getOffset(), dimension = tree.getDimension();
+        double x = offset.getX() + dimension.getX() / 2;
         return new MyLine(
-                (int) (offsetX + dimensionX / 2),
-                (int) JavaFXHelper.getY(offsetY, offsetY + dimensionY),
-                (int) (offsetX + dimensionX / 2),
-                (int) offsetY
+                x, height - offset.getY(),
+                x, height - (offset.getY() + dimension.getY())
         );
     }
 
-    public MyLine getLeftRightLine() {
+    public MyLine getLeftRightLine(Quadtree tree, double height) {
+        Point2D offset = tree.getOffset(), dimension = tree.getDimension();
+        double y = height - (offset.getY() + dimension.getY() / 2);
         return new MyLine(
-                (int) offsetX,
-                (int) JavaFXHelper.getY(offsetY + dimensionY / 2, offsetY + dimensionY),
-                (int) (offsetX + dimensionX),
-                (int) JavaFXHelper.getY(offsetY + dimensionY / 2, offsetY + dimensionY)
+                offset.getX(), y,
+                offset.getX() + dimension.getX(), y
         );
-    }
-
-    public static MyLine getLeftRightLine(Quadtree tree) {
-        return new MyLineHelper(tree).getLeftRightLine();
-    }
-
-    public static MyLine getBottomTopLine(Quadtree tree) {
-        return new MyLineHelper(tree).getBottomTopLine();
-    }
-
-    public static class Builder {
-
-        private Quadtree tree;
-
-        public Builder withQuadtree(Quadtree tree) {
-            this.tree = tree;
-            return this;
-        }
-
-        public MyLineHelper build() {
-            return new MyLineHelper(tree);
-        }
     }
 }

@@ -1,6 +1,5 @@
 package com.github.rcmarc.quadtree.visual;
 
-import com.github.rcmarc.quadtree.core.Data;
 import com.github.rcmarc.quadtree.core.Point2D;
 import com.github.rcmarc.quadtree.core.Quadtree;
 import javafx.scene.canvas.GraphicsContext;
@@ -73,9 +72,8 @@ public class QuadtreeDrawer {
 
     private static void drawAllPoints(GraphicsContext context, Quadtree tree) {
         if (tree.isLeaf()) {
-            Arrays.stream(tree.getAllData())
+            tree.getPoints().stream()
                     .filter(Objects::nonNull)
-                    .map(Data::getPoint)
                     .forEach(point -> QuadtreeDrawer.drawPoint(context, point));
         } else {
             Arrays.stream(tree.getQuadrants())

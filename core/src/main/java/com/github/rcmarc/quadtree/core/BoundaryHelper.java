@@ -1,8 +1,7 @@
 package com.github.rcmarc.quadtree.core;
 
-public class QuadtreeBoundaryHelper {
-
-    public boolean isPointRadiusOverlayingQuadtree(Quadtree tree, Point2D point) {
+public class BoundaryHelper {
+    public boolean isPointOverlayingQuadtree(Quadtree tree, Point2D point) {
         if (isPointBetweenHorizontalEdges(tree, point)) {
             if (isPointBetweenVerticalEdges(tree, point)){
                 return true;

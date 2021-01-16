@@ -1,10 +1,16 @@
 package com.github.rcmarc.quadtree.core;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PointQuadtreeTest {
+
+    @BeforeAll
+    public static void setUp() {
+        QuadtreeConfig.getConfig().setMaxPoints(1);
+    }
 
     @Test
     public void testEquals(){
@@ -36,16 +42,13 @@ class PointQuadtreeTest {
         Point2D point_1 = new Point2D(4,6);
         Point2D point_2 = new Point2D(2,7);
         Point2D point_3 = new Point2D(1, 8);
-        tree.insert(new Data<>(5,point_1));
-        tree.insert(new Data<>(5,point_2));
-        tree.insert(new Data<>(5,point_3));
+        tree.insert(point_1);
+        tree.insert(point_2);
+        tree.insert(point_3);
         tree.delete(point_1);
-        assertTrue(tree.getQuadrants()[0].getQuadrants()[2].isEmpty());
-        assertFalse(tree.isEmpty());
+        assertTrue(tree.getQuadrants()[0].getQuadrants()[2].isLeaf());
         tree.delete(point_2);
-        assertTrue(tree.isLeaf());
-        assertFalse(tree.isEmpty());
         tree.delete(point_3);
-        assertTrue(tree.isEmpty());
+        assertTrue(tree.isLeaf());
     }
 }

@@ -1,52 +1,40 @@
 package com.github.rcmarc.quadtree.core;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.github.rcmarc.quadtree.core.Corner.*;
-
-public class InclusiveQuadrantGetter implements QuadrantGetter {
-
-    private final CornerToQuadtreeMapper mapper;
-
-    public InclusiveQuadrantGetter() {
-        this.mapper = new CornerToQuadtreeMapper();
-    }
-
+public class InclusiveQuadrantGetter implements QuadrantGetter{
     @Override
-    public List<Quadtree> getQuadrants(Quadtree tree, Point2D point) {
+    public Collection<Quadtree> getQuadrants(Quadtree tree, Point2D point) {
         Point2D offset = tree.getOffset(), dimension = tree.getDimension();
-        double max_x = offset.x + dimension.x, max_y = offset.y + dimension.y;
+        double max_x = offset.getX() + dimension.getX(), max_y = offset.getY() + dimension.getY();
 
-        if (point.x > max_x || point.y > max_y || point.x < offset.x || point.y < offset.y)
+        if (point.getX() > max_x || point.getY() > max_y || point.getX() < offset.getX() || point.getY() < offset.getY())
             return Collections.emptyList();
 
-        double middle_x = offset.x + dimension.x / 2, middle_y = offset.y + dimension.y / 2;
+        double middle_x = offset.getX() + dimension.getX() / 2, middle_y = offset.getY() + dimension.getY() / 2;
 
-        if (point.x == middle_x) {
-            if (point.y == middle_y) return Arrays.stream(tree.getQuadrants()).collect(Collectors.toList());
-            return point.y > middle_y ?
-                    getQuadrants(tree, TOP_LEFT, TOP_RIGHT) :
-                    getQuadrants(tree, BOTTOM_LEFT, BOTTOM_RIGHT);
-        }
-        if (point.y == middle_y) {
-            return point.x > middle_x ?
-                    getQuadrants(tree, TOP_RIGHT, BOTTOM_RIGHT) :
-                    getQuadrants(tree, TOP_LEFT, BOTTOM_LEFT);
-        }
-        if (point.x > middle_x) {
-            return point.y > middle_y ?
-                    getQuadrants(tree, TOP_RIGHT) :
-                    getQuadrants(tree, BOTTOM_RIGHT);
-        }
-        return point.y > middle_y ?
-                getQuadrants(tree, TOP_LEFT) :
-                getQuadrants(tree, BOTTOM_LEFT);
-    }
+        Quadtree[] quadrants = tree.getQuadrants();
 
-    private List<Quadtree> getQuadrants(Quadtree tree, Corner... corners) {
-        return mapper.getQuadrants(tree, corners);
+        if (point.getX() == middle_x) {
+            if (point.getY() == middle_y) return Arrays.asList(quadrants);
+            return point.getY() > middle_y ?
+                    Arrays.asList(quadrants[0], quadrants[1]):
+                    Arrays.asList(quadrants[2], quadrants[3]);
+        }
+        if (point.getY() == middle_y) {
+            return point.getX() > middle_x ?
+                    Arrays.asList(quadrants[1], quadrants[2]) :
+                    Arrays.asList(quadrants[0], quadrants[3]);
+        }
+        if (point.getX() > middle_x) {
+            return point.getY() > middle_y ?
+                    Collections.singleton(quadrants[1]) :
+                    Collections.singleton(quadrants[2]);
+        }
+        return point.getY() > middle_y ?
+                Collections.singleton(quadrants[0]) :
+                Collections.singleton(quadrants[3]);
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class QuadtreeBoundaryHelperTest {
-    QuadtreeBoundaryHelper helper = new QuadtreeBoundaryHelper();
+    BoundaryHelper helper = new BoundaryHelper();
     Quadtree tree = new PointQuadtree(new Point2D(10,10));
     Quadtree tree_offset = new PointQuadtree(new Point2D(10,10) , new Point2D(5,5));
 
@@ -62,23 +62,23 @@ public class QuadtreeBoundaryHelperTest {
     @Test
     public void isPointRadiusOverlayingQuadtreeTest(){
         Point2D point = new Point2D(6, 18, 4);
-        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
-        assertFalse(helper.isPointRadiusOverlayingQuadtree(tree, point));
+        assertTrue(helper.isPointOverlayingQuadtree(tree_offset, point));
+        assertFalse(helper.isPointOverlayingQuadtree(tree, point));
 
         point = new Point2D(6, -5, 6);
-        assertFalse(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
-        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree, point));
+        assertFalse(helper.isPointOverlayingQuadtree(tree_offset, point));
+        assertTrue(helper.isPointOverlayingQuadtree(tree, point));
 
         point = new Point2D(18, 6, 4);
-        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
-        assertFalse(helper.isPointRadiusOverlayingQuadtree(tree, point));
+        assertTrue(helper.isPointOverlayingQuadtree(tree_offset, point));
+        assertFalse(helper.isPointOverlayingQuadtree(tree, point));
 
         point = new Point2D(-5, 6, 6);
-        assertFalse(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
-        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree, point));
+        assertFalse(helper.isPointOverlayingQuadtree(tree_offset, point));
+        assertTrue(helper.isPointOverlayingQuadtree(tree, point));
 
         point = new Point2D(16, 16, 1);
-        assertTrue(helper.isPointRadiusOverlayingQuadtree(tree_offset, point));
+        assertTrue(helper.isPointOverlayingQuadtree(tree_offset, point));
     }
 
 }

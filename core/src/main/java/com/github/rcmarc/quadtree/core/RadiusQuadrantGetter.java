@@ -1,28 +1,24 @@
 package com.github.rcmarc.quadtree.core;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class RadiusQuadrantGetter implements QuadrantGetter {
+public class RadiusQuadrantGetter implements QuadrantGetter{
 
-    private final QuadtreeBoundaryHelper boundaryHelper;
-
-    public RadiusQuadrantGetter() {
-        this.boundaryHelper = new QuadtreeBoundaryHelper();
-    }
+    final BoundaryHelper helper = new BoundaryHelper();
 
     @Override
-    public List<Quadtree> getQuadrants(Quadtree tree, Point2D point) {
-        if (!boundaryHelper.isPointRadiusOverlayingQuadtree(tree, point)) {
+    public Collection<Quadtree> getQuadrants(Quadtree quadtree, Point2D point) {
+        if (!helper.isPointOverlayingQuadtree(quadtree, point)) {
             return Collections.emptyList();
         }
 
-        return Arrays.stream(tree.getQuadrants())
+        return Arrays.stream(quadtree.getQuadrants())
                 .filter(Objects::nonNull)
-                .filter(q -> boundaryHelper.isPointRadiusOverlayingQuadtree(q, point))
+                .filter(q -> helper.isPointOverlayingQuadtree(q, point))
                 .collect(Collectors.toList());
     }
 }

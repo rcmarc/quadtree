@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,15 +17,16 @@ public class RadiusQuadrantGetterTest {
 
     @BeforeAll
     static void setUp() {
+        QuadtreeConfig.getConfig().setMaxPoints(1);
         insertAll(
                 tree,
-                new Data<>(null, new Point2D(7, 7)),
-                new Data<>(null, new Point2D(3, 3))
+                new Point2D(7, 7),
+                new Point2D(3, 3)
         );
         insertAll(
                 tree_offset,
-                new Data<>(null, new Point2D(12, 12)),
-                new Data<>(null, new Point2D(7, 7))
+                new Point2D(12, 12),
+                new Point2D(7, 7)
         );
     }
 
@@ -32,15 +34,15 @@ public class RadiusQuadrantGetterTest {
     public void getQuadrants() {
         Point2D point = new Point2D(12, 12, 3);
         Quadtree expectedTree = new PointQuadtree(new Point2D(5, 5), new Point2D(5, 5));
-        List<Quadtree> quadrantsOutput = getter.getQuadrants(tree, point);
+        Collection<Quadtree> quadrantsOutput = getter.getQuadrants(tree, point);
         assertEquals(1, quadrantsOutput.size());
-        assertEquals(expectedTree, quadrantsOutput.get(0));
+        assertEquals(expectedTree, quadrantsOutput.stream().findFirst().get());
 
         point = new Point2D(17,17, point.radius);
         expectedTree = new PointQuadtree(new Point2D(5,5), new Point2D(10,10));
         quadrantsOutput = getter.getQuadrants(tree_offset, point);
         assertEquals(1, quadrantsOutput.size());
-        assertEquals(expectedTree, quadrantsOutput.get(0));
+        assertEquals(expectedTree, quadrantsOutput.stream().findFirst().get());
 
         point = new Point2D(5,5, point.radius);
         Point2D subDimension = new Point2D(5,5);
@@ -65,7 +67,7 @@ public class RadiusQuadrantGetterTest {
         assertEquals(treeList, quadrantsOutput);
     }
 
-    static void insertAll(Quadtree tree, Data<?>... data) {
-        Arrays.stream(data).forEach(tree::insert);
+    static void insertAll(Quadtree tree, Point2D... points) {
+        Arrays.stream(points).forEach(tree::insert);
     }
 }

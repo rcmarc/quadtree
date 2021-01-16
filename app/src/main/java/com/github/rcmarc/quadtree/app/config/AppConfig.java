@@ -13,11 +13,12 @@ public class AppConfig {
     private PointGenerator pointGenerator = new RandomPointGenerator();
     private NodeAnimator nodeAnimator = new BoundCircleAnimator(getBoundGetter());
     private QuadtreeDrawer quadtreeDrawer = new SimpleQuadtreeDrawer();
-    private Duration animationDuration = Duration.millis(3);
+    private Duration animationDuration = Duration.millis(10);
     private double speed = 400;
     private double height = 600;
-    private double width = 1200;
+    private double width = 1300;
     private double radius = 5;
+    private boolean useQuadtree = true;
     public static AppConfig DEFAULT_CONFIG = new AppConfig();
 
     public void setCircleFactory(CircleFactory circleFactory) {
@@ -114,5 +115,13 @@ public class AppConfig {
 
     public void setQuadtreeDrawer(QuadtreeDrawer quadtreeDrawer) {
         this.quadtreeDrawer = quadtreeDrawer;
+    }
+
+    public boolean isUsingQuadtree() {
+        return useQuadtree;
+    }
+
+    public void setUseQuadtree(boolean useQuadtree) {
+        this.useQuadtree = useQuadtree;
     }
 }

@@ -8,8 +8,9 @@ import javafx.scene.paint.Color;
 public class RandomColorCircleBuilder implements CircleFactory {
     @Override
     public Point2DCircle buildCircle(Point2D point) {
-        Point2DCircle circle = new Point2DCircle(point);
-        circle.setFill(randomColor());
+        Color color = randomColor();
+        Point2DCircle circle = new Point2DCircle(point, color);
+        circle.setFill(color);
         return circle;
     }
 
