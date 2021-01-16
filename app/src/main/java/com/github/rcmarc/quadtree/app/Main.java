@@ -55,8 +55,10 @@ public class Main extends Application {
 
         TextField fieldMaxPoints = new TextField();
         fieldMaxPoints.setPromptText("Max Points");
+        fieldMaxPoints.textProperty().set(quadtreeConfig.getMaxPoints() + "");
         TextField fieldMaxDepth = new TextField();
         fieldMaxDepth.setPromptText("Max Depth");
+        fieldMaxDepth.textProperty().set(quadtreeConfig.getMaxDepth() + "");
         onlyNumbers(fieldMaxDepth, fieldMaxPoints);
         fieldMaxDepth.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxDepth(getInt(newValue).orElse(quadtreeConfig.getMaxDepth())));
         fieldMaxPoints.textProperty().addListener((observable, oldValue, newValue) -> quadtreeConfig.setMaxPoints(getInt(newValue).orElse(quadtreeConfig.getMaxPoints())));
