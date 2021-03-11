@@ -9,7 +9,7 @@ public class QuadtreeConfig {
     private QuadtreeDeleter quadtreeDeleter;
     private QuadtreeDivider quadtreeDivider;
     private QuadtreeInserter quadtreeInserter;
-    private int maxDepth = 4;
+    private int maxDepth = 3;
     private int maxPoints = 2;
 
     public static QuadtreeConfig getConfig() {
