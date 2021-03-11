@@ -16,3 +16,7 @@ Then build the project:
 ### Run visual project
 
 ``` mvn -pl visual clean javafx:run ```
+
+### Run app project
+
+``` mvn -pl app clean javafx:run ```
